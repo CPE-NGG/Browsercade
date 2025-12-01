@@ -145,7 +145,7 @@
         header {
             width: fit-content;
             min-width: 300px;
-            display: flex;
+            display: flex; /* Default desktop row layout */
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
@@ -157,15 +157,19 @@
             border-radius: 50px;
             display: none; /* Hidden until game starts */
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            /* NEW: Use flex column for mobile if needed, but row default is fine for desktop */
-            flex-direction: row; 
         }
 
         .scoreboard {
             display: flex;
             gap: 20px;
             align-items: center;
-            flex-wrap: nowrap; /* Default desktop view */
+            width: 100%; /* Important for desktop spacing */
+        }
+        
+        .player-action-group {
+            display: flex;
+            align-items: center;
+            gap: 20px;
         }
 
         .player-score {
@@ -188,13 +192,11 @@
         .avatar { font-size: 1.4rem; }
         .score-val { font-weight: bold; font-size: 1.2rem; margin-left: 5px; }
         
-        /* NEW: Button styling (for better visual appeal) */
         .restart-btn {
             background: none; 
             border: none; 
             cursor: pointer; 
             font-size: 1.5rem; 
-            margin-left: 15px; 
             opacity: 0.7;
             transition: opacity 0.2s;
         }
@@ -320,49 +322,50 @@
                 font-size: 1.2rem;
             }
             
-            /* 🌟 MOBILE HEADER REFINEMENT FIX 🌟 */
+            /* 🌟 MOBILE HEADER FINAL FIX (GRID LAYOUT) 🌟 */
             header {
-                /* Make it taller to accommodate wrapped content */
                 width: 95%; 
                 max-width: 450px;
-                padding: 10px 15px;
-                /* Align items to center when multi-line */
-                align-items: flex-start; 
-                flex-direction: column; /* Stack scoreboard and button vertically */
-            }
-            
-            .scoreboard {
-                /* Allow items to wrap into a 2x2 grid */
-                flex-wrap: wrap; 
-                justify-content: space-between; /* Space out the player boxes */
-                gap: 5px 10px; /* Vertical and horizontal gap */
-                width: 100%; /* Take full width of the header */
-                margin-bottom: 5px;
+                padding: 15px 15px; /* Increase vertical padding */
+                
+                /* Change header to display: flex and arrange items in a column */
+                display: flex;
+                flex-direction: column; 
+                align-items: center;
+                justify-content: center;
+                border-radius: 20px; /* Make it more of a rounded square */
             }
 
-            .player-score {
-                /* Allows the two player boxes to sit side-by-side */
-                flex: 1 1 45%; 
-                min-width: 120px;
-                font-size: 0.9rem;
+            .scoreboard {
+                /* The scoreboard will now contain the top row items: P1 | P2 Group */
+                display: flex;
+                justify-content: space-between;
+                width: 100%;
+                gap: 5px;
+                order: 1; /* Keep it on the first line */
             }
             
+            .player-score {
+                /* Reduce padding slightly */
+                padding: 5px 10px;
+                font-size: 0.9rem;
+            }
+
+            .player-action-group {
+                /* Make the Player 2 box and the restart button stick together on the right */
+                gap: 5px;
+            }
+
             #center-stat {
-                /* Puts "VS" on its own center line, visually separating the scores */
-                order: 3; 
+                /* Center Stat will be the VS/Timer on the second line */
+                order: 2; /* Force to the second line */
                 width: 100%;
                 text-align: center;
-                margin: 0 !important;
-                font-size: 0.9rem;
-                padding: 5px 0;
+                margin: 5px 0 0 0 !important; /* Add space above it */
+                font-size: 1rem;
+                padding: 0;
             }
-
-            .restart-btn {
-                /* Position the button on the next line to the right */
-                align-self: flex-end;
-                margin: 0;
-            }
-            /* 🌟 END MOBILE HEADER REFINEMENT FIX 🌟 */
+            /* 🌟 END MOBILE HEADER FINAL FIX 🌟 */
         }
     </style>
 </head>
@@ -410,16 +413,18 @@
                 <span class="score-val" id="score-p1">0</span>
             </div>
             
-            <div id="center-stat" style="font-weight:bold; color: #555; margin: 0 10px;">VS</div>
-
-            <div class="player-score hidden" id="score-p2-box">
-                <span class="avatar" id="disp-av-2">🐼</span>
-                <span id="disp-name-2">Player 2</span>
-                <span class="score-val" id="score-p2">0</span>
+            <div class="player-action-group hidden" id="player-action-group">
+                <div class="player-score" id="score-p2-box">
+                    <span class="avatar" id="disp-av-2">🐼</span>
+                    <span id="disp-name-2">Player 2</span>
+                    <span class="score-val" id="score-p2">0</span>
+                </div>
+                <button onclick="location.reload()" title="Restart" class="restart-btn">🔄</button>
             </div>
         </div>
         
-        <button onclick="location.reload()" title="Restart" class="restart-btn">🔄</button>
+        <div id="center-stat" style="font-weight:bold; color: #555; margin: 0 10px;">VS</div>
+
     </header>
 
     <div class="game-container" id="game-container">
@@ -470,6 +475,7 @@
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
             event.target.classList.add('selected');
 
+            // Hide/Show P2 setup based on mode
             if (mode === 'local') {
                 document.getElementById('setup-p2').classList.remove('hidden');
             } else {
@@ -550,8 +556,11 @@
             if (state.mode === 'solo') {
                 document.getElementById('center-stat').innerText = '00:00';
                 startTimer();
+                // Hide the action group in solo mode
+                document.getElementById('player-action-group').classList.add('hidden');
             } else {
-                document.getElementById('score-p2-box').classList.remove('hidden');
+                // Show the action group in local mode
+                document.getElementById('player-action-group').classList.remove('hidden');
             }
         }
 
