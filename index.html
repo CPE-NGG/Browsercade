@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zen Memory Match: Multiplayer</title>
+    <title>Zen Memory Match: Glass Edition</title>
     <style>
         :root {
             --glass: rgba(255, 255, 255, 0.65);
@@ -17,12 +17,13 @@
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
 
         body {
+            /* Replace MatchBG.png with your actual image path or a URL */
             background-image: url('MatchBG.png'); 
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
             background-repeat: no-repeat;
-            background-color: #a29bfe;
+            background-color: #a29bfe; /* Fallback color */
             font-family: var(--font-main);
             min-height: 100vh;
             display: flex;
@@ -30,10 +31,10 @@
             align-items: center;
             justify-content: center;
             color: #2d3436;
-            overflow: hidden;
+            overflow: hidden; /* Prevents body scroll bars */
         }
 
-        /* --- LOBBY SCREEN --- */
+        /* --- LOBBY SCREEN (No Changes) --- */
         .lobby-container {
             background: var(--glass);
             backdrop-filter: blur(15px);
@@ -140,7 +141,7 @@
             cursor: pointer;
         }
 
-        /* --- GAME UI (No Changes) --- */
+        /* --- GAME UI --- */
         header {
             width: fit-content;
             min-width: 300px;
@@ -154,7 +155,7 @@
             border: var(--glass-border);
             padding: 10px 25px;
             border-radius: 50px;
-            display: none; 
+            display: none; /* Hidden until game starts */
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
 
@@ -215,7 +216,7 @@
             transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
             aspect-ratio: 3/4;
-            width: 70px; 
+            width: 70px; /* Default for Easy (4x4) and Medium (5x4) */
         }
 
         .card.flipped { transform: rotateY(180deg); }
@@ -267,7 +268,7 @@
         
         .hidden { display: none !important; }
 
-        /* Modal */
+        /* Modal (No Changes) */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.4);
@@ -283,20 +284,54 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
         }
 
+        /* Fix for scrolling on hard (6x6) */
         .game-container.hard-difficulty .card {
-            width: 60px; 
-            font-size: 1.7rem; 
+            width: 60px; /* Slightly smaller cards for 6x6 to ensure vertical fit */
+            font-size: 1.7rem; /* Shrink font too */
         }
         
+        /* Responsive tweaks */
         @media (max-width: 600px) {
             .card { width: 55px; font-size: 1.5rem; }
             .lobby-container { padding: 25px; }
             .game-container { padding: 15px; }
             .grid { gap: 8px; }
-             .game-container.hard-difficulty .card {
+            
+            /* Keep hard cards even smaller on mobile */
+            .game-container.hard-difficulty .card {
                 width: 45px; 
                 font-size: 1.2rem;
             }
+            
+            /* 🌟 MOBILE HEADER WRAP FIX 🌟 */
+            header {
+                width: 95%; 
+                max-width: 450px;
+                padding: 10px 15px;
+            }
+
+            .scoreboard {
+                flex-wrap: wrap; 
+                justify-content: center;
+                gap: 10px; 
+            }
+
+            .player-score {
+                /* Allows the two player boxes to sit side-by-side */
+                flex: 1 1 45%; 
+                min-width: 120px;
+                font-size: 0.9rem;
+            }
+            
+            #center-stat {
+                /* Pushes "VS" or the timer to the next line and centers it */
+                order: 3; 
+                width: 100%;
+                text-align: center;
+                margin: 5px 0 !important;
+                font-size: 0.9rem;
+            }
+            /* 🌟 END MOBILE HEADER WRAP FIX 🌟 */
         }
     </style>
 </head>
