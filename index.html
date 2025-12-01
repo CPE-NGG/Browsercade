@@ -157,12 +157,15 @@
             border-radius: 50px;
             display: none; /* Hidden until game starts */
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            /* NEW: Use flex column for mobile if needed, but row default is fine for desktop */
+            flex-direction: row; 
         }
 
         .scoreboard {
             display: flex;
             gap: 20px;
             align-items: center;
+            flex-wrap: nowrap; /* Default desktop view */
         }
 
         .player-score {
@@ -184,6 +187,20 @@
 
         .avatar { font-size: 1.4rem; }
         .score-val { font-weight: bold; font-size: 1.2rem; margin-left: 5px; }
+        
+        /* NEW: Button styling (for better visual appeal) */
+        .restart-btn {
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            font-size: 1.5rem; 
+            margin-left: 15px; 
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .restart-btn:hover {
+            opacity: 1;
+        }
 
         /* --- GRID & CARDS --- */
         
@@ -216,7 +233,7 @@
             transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
             aspect-ratio: 3/4;
-            width: 70px; /* Default for Easy (4x4) and Medium (5x4) */
+            width: 70px; 
         }
 
         .card.flipped { transform: rotateY(180deg); }
@@ -303,17 +320,24 @@
                 font-size: 1.2rem;
             }
             
-            /* 🌟 MOBILE HEADER WRAP FIX 🌟 */
+            /* 🌟 MOBILE HEADER REFINEMENT FIX 🌟 */
             header {
+                /* Make it taller to accommodate wrapped content */
                 width: 95%; 
                 max-width: 450px;
                 padding: 10px 15px;
+                /* Align items to center when multi-line */
+                align-items: flex-start; 
+                flex-direction: column; /* Stack scoreboard and button vertically */
             }
-
+            
             .scoreboard {
+                /* Allow items to wrap into a 2x2 grid */
                 flex-wrap: wrap; 
-                justify-content: center;
-                gap: 10px; 
+                justify-content: space-between; /* Space out the player boxes */
+                gap: 5px 10px; /* Vertical and horizontal gap */
+                width: 100%; /* Take full width of the header */
+                margin-bottom: 5px;
             }
 
             .player-score {
@@ -324,14 +348,21 @@
             }
             
             #center-stat {
-                /* Pushes "VS" or the timer to the next line and centers it */
+                /* Puts "VS" on its own center line, visually separating the scores */
                 order: 3; 
                 width: 100%;
                 text-align: center;
-                margin: 5px 0 !important;
+                margin: 0 !important;
                 font-size: 0.9rem;
+                padding: 5px 0;
             }
-            /* 🌟 END MOBILE HEADER WRAP FIX 🌟 */
+
+            .restart-btn {
+                /* Position the button on the next line to the right */
+                align-self: flex-end;
+                margin: 0;
+            }
+            /* 🌟 END MOBILE HEADER REFINEMENT FIX 🌟 */
         }
     </style>
 </head>
@@ -387,7 +418,8 @@
                 <span class="score-val" id="score-p2">0</span>
             </div>
         </div>
-        <button onclick="location.reload()" title="Restart" style="background:none; border:none; cursor:pointer; font-size:1.5rem; margin-left: 15px; opacity: 0.7;">🔄</button>
+        
+        <button onclick="location.reload()" title="Restart" class="restart-btn">🔄</button>
     </header>
 
     <div class="game-container" id="game-container">
