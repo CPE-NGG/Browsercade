@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zen Memory Match: Multiplayer</title>
+    <style>
+        :root {
+            --glass: rgba(255, 255, 255, 0.7);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.5);
+            --card-back: #6c5ce7;
+            --accent: #6c5ce7;
+            --active-player: #00b894;
+            --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+        body {
+            background-image: url(MatchBG.png);
+            background-size: cover, auto;
+            background-position: center, center;
+            background-repeat: no-repeat, no-repeat;
+            font-family: var(--font-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #2d3436;
+        }
+
+        /* --- LOBBY SCREEN --- */
+        .lobby-container {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            z-index: 10;
+        }
+
+        .lobby-container label {
+            color: #666666; 
+            font-family: var(--font-main);
+            font-weight: bold;
+            font-size: 1rem;
+            margin-right: 10px;
+        }
+
+        .mode-select {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .mode-btn {
+            padding: 15px 25px;
+            border: 2px solid transparent;
+            background: white;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            flex: 1;
+        }
+
+        .mode-btn.selected {
+            border-color: var(--accent);
+            background: #eef2ff;
+            color: var(--accent);
+        }
+
+        .player-setup {
+            display: grid;
+            gap: 15px;
+            text-align: left;
+            margin-bottom: 25px;
+        }
+
+        .player-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input {
+            font-weight: bold;
+            font-size: 1rem;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid var(--accent);
+            transition: 0.3s;
+            width: 100%;
+            color: #3b3b3b;
+        }
+
+        input:focus {
+            background: white;
+            outline: none;
+            color: var(--accent);
+        }
+
+        .avatar-select {
+            font-size: 1.5rem;
+            cursor: pointer;
+            background: white;
+            padding: 5px;
+            border-radius: 8px;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .avatar-select:hover {
+            background: #f3e9ff;
+            color: #8f7bff;
+        }
+
+        #difficulty {
+            font-weight: bold;
+            font-size: 0.8rem;
+            padding: 10px;
+            border-radius: 8px;      
+            border: 2px solid var(--accent);
+            background: white;
+            color: #3b3b3b;          
+            font-family: var(--font-main);
+            transition: 0.3s;
+        }
+
+        #difficulty:hover, #difficulty:focus {
+            border-color: #8f7bff;   
+            outline: none;
+            color: var(--accent);
+        }
+
+        /* --- GAME UI --- */
+        header {
+            width: 90%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: var(--glass);
+            padding: 15px 25px;
+            border-radius: 15px;
+            display: none; /* Hidden until game starts */
+        }
+
+        .scoreboard {
+            display: flex;
+            gap: 30px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .player-score {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            border-radius: 50px;
+            transition: 0.3s;
+            opacity: 0.6;
+        }
+
+        .player-score.active {
+            background: white;
+            opacity: 1;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: 2px solid var(--active-player);
+        }
+
+        .avatar { font-size: 1.5rem; }
+        .score-val { font-weight: bold; font-size: 1.2rem; margin-left: 5px; }
+
+        /* --- GRID & CARDS --- */
+        .game-container { perspective: 1000px; display: none; }
+        .grid { display: grid; gap: 12px; margin: 0 auto; }
+
+        .card {
+            position: relative;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+            aspect-ratio: 3/4;
+            width: 70px;
+        }
+
+        .card.flipped { transform: rotateY(180deg); }
+        
+        .card-face {
+            width: 100%; height: 100%; position: absolute;
+            border-radius: 12px;
+            display: flex; justify-content: center; align-items: center;
+            backface-visibility: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            font-size: 2rem;
+        }
+
+        .card-front { background: white; transform: rotateY(180deg); }
+        .card-back { 
+            background: var(--card-back);
+            background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.1) 0px, rgba(255,255,255,0.1) 10px, transparent 10px, transparent 20px);
+        }
+
+        .card.matched .card-front {
+            background: #e6fffa;
+            border: 2px solid #00b894;
+        }
+
+        .primary-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .hidden { display: none !important; }
+
+        /* Modal */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+            z-index: 100;
+        }
+        .modal.visible { opacity: 1; pointer-events: all; }
+        .modal-content {
+            background: white; padding: 40px; border-radius: 24px;
+            text-align: center; max-width: 400px;
+        }
+
+        @media (max-width: 600px) {
+            .card { width: 55px; }
+            .scoreboard { gap: 10px; }
+            .player-score { font-size: 0.9rem; padding: 5px 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="lobby-container" id="lobby">
+        <h1 style="margin-bottom: 20px; color: var(--accent);">Zen Match</h1>
+        
+        <div class="mode-select">
+            <div class="mode-btn selected" onclick="setMode('solo')">Solo</div>
+            <div class="mode-btn" onclick="setMode('local')">Local Multiplayer</div>
+        </div>
+
+        <div class="player-setup" id="setup-p1">
+            <div class="player-row">
+                <div class="avatar-select" onclick="cycleAvatar(1)">🦊</div>
+                <input type="text" id="p1-name" value="Player 1" placeholder="Name">
+            </div>
+        </div>
+
+        <div class="player-setup hidden" id="setup-p2">
+            <div class="player-row">
+                <div class="avatar-select" onclick="cycleAvatar(2)">🐼</div>
+                <input type="text" id="p2-name" value="Player 2" placeholder="Name">
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label>Difficulty: </label>
+            <select id="difficulty" style="padding: 5px; border-radius: 5px;">
+                <option value="easy">Easy (4x4)</option>
+                <option value="medium" selected>Medium (5x4)</option>
+                <option value="hard">Hard (6x6)</option>
+            </select>
+        </div>
+
+        <button class="primary-btn" onclick="startGame()">Start Game</button>
+    </div>
+
+    <header id="game-header">
+        <div class="scoreboard">
+            <div class="player-score active" id="score-p1-box">
+                <span class="avatar" id="disp-av-1">🦊</span>
+                <span id="disp-name-1">Player 1</span>
+                <span class="score-val" id="score-p1">0</span>
+            </div>
+            
+            <div id="center-stat" style="font-weight:bold; color: #666;">VS</div>
+
+            <div class="player-score hidden" id="score-p2-box">
+                <span class="avatar" id="disp-av-2">🐼</span>
+                <span id="disp-name-2">Player 2</span>
+                <span class="score-val" id="score-p2">0</span>
+            </div>
+        </div>
+        <button onclick="location.reload()" style="background:none; border:none; cursor:pointer; font-size:1.5rem; margin-left: 15px;">🔄</button>
+    </header>
+
+    <div class="game-container" id="game-container">
+        <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="modal" id="end-modal">
+        <div class="modal-content">
+            <h2 id="end-title">Game Over</h2>
+            <p id="end-msg" style="margin: 15px 0; color: #666;"></p>
+            <button class="primary-btn" onclick="location.reload()">Return to Lobby</button>
+        </div>
+    </div>
+
+    <script>
+        // --- ASSETS & CONFIG ---
+        const AVATARS = ['🦊', '🐼', '🐸', '🦁', '🐷', '🐙', '🦄', '👽'];
+        const ICONS = ['🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🥑'];
+        
+        const CONFIG = {
+            easy: { rows: 4, cols: 4, pairs: 8 },
+            medium: { rows: 5, cols: 4, pairs: 10 },
+            hard: { rows: 6, cols: 6, pairs: 18 }
+        };
+
+        // --- STATE ---
+        let state = {
+            mode: 'solo', // 'solo' or 'local'
+            difficulty: 'medium',
+            turn: 1, // 1 or 2
+            scores: { 1: 0, 2: 0 },
+            cards: [],
+            flipped: [],
+            locked: false,
+            p1: { name: 'Player 1', avatar: '🦊' },
+            p2: { name: 'Player 2', avatar: '🐼' },
+            totalPairs: 0,
+            foundPairs: 0,
+            timer: 0,
+            timerInterval: null
+        };
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // --- LOBBY LOGIC ---
+        function setMode(mode) {
+            state.mode = mode;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+            event.target.classList.add('selected');
+
+            if (mode === 'local') {
+                document.getElementById('setup-p2').classList.remove('hidden');
+            } else {
+                document.getElementById('setup-p2').classList.add('hidden');
+            }
+        }
+
+        let avIdx1 = 0;
+        let avIdx2 = 1;
+        function cycleAvatar(p) {
+            const arr = AVATARS;
+            if (p === 1) {
+                avIdx1 = (avIdx1 + 1) % arr.length;
+                document.querySelector('#setup-p1 .avatar-select').innerText = arr[avIdx1];
+            } else {
+                avIdx2 = (avIdx2 + 1) % arr.length;
+                document.querySelector('#setup-p2 .avatar-select').innerText = arr[avIdx2];
+            }
+        }
+
+        function startGame() {
+            // Get Info
+            state.difficulty = document.getElementById('difficulty').value;
+            state.p1.name = document.getElementById('p1-name').value || 'Player 1';
+            state.p1.avatar = document.querySelector('#setup-p1 .avatar-select').innerText;
+            
+            if (state.mode === 'local') {
+                state.p2.name = document.getElementById('p2-name').value || 'Player 2';
+                state.p2.avatar = document.querySelector('#setup-p2 .avatar-select').innerText;
+            }
+
+            // UI Transition
+            document.getElementById('lobby').classList.add('hidden');
+            document.getElementById('game-header').style.display = 'flex';
+            document.getElementById('game-container').style.display = 'block';
+
+            setupBoard();
+            updateScoreUI();
+        }
+
+        function setupBoard() {
+            const conf = CONFIG[state.difficulty];
+            state.totalPairs = conf.pairs;
+            
+            // Grid CSS
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            grid.style.gridTemplateColumns = `repeat(${conf.cols}, 1fr)`;
+
+            // Deck Gen
+            let deck = ICONS.slice(0, conf.pairs);
+            deck = [...deck, ...deck];
+            deck.sort(() => Math.random() - 0.5);
+
+            deck.forEach((icon, i) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.icon = icon;
+                card.dataset.index = i;
+                card.innerHTML = `
+                    <div class="card-face card-front">${icon}</div>
+                    <div class="card-face card-back"></div>
+                `;
+                card.onclick = () => handleCardClick(card);
+                grid.appendChild(card);
+            });
+
+            if (state.mode === 'solo') {
+                document.getElementById('center-stat').innerText = '00:00';
+                startTimer();
+            } else {
+                document.getElementById('score-p2-box').classList.remove('hidden');
+            }
+        }
+
+        // --- GAMEPLAY LOGIC ---
+
+        function handleCardClick(card) {
+            if (state.locked || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+            playSound(400, 'sine');
+            card.classList.add('flipped');
+            state.flipped.push(card);
+
+            if (state.flipped.length === 2) {
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            state.locked = true;
+            const [c1, c2] = state.flipped;
+            const match = c1.dataset.icon === c2.dataset.icon;
+
+            if (match) {
+                setTimeout(() => {
+                    playSound(600, 'sine');
+                    c1.classList.add('matched');
+                    c2.classList.add('matched');
+                    state.flipped = [];
+                    state.locked = false;
+                    
+                    // Score Update
+                    state.scores[state.turn]++;
+                    state.foundPairs++;
+                    updateScoreUI();
+                    
+                    if (state.foundPairs === state.totalPairs) endGame();
+
+                    // Note: In this ruleset, matching keeps the turn.
+                }, 400);
+            } else {
+                setTimeout(() => {
+                    playSound(150, 'triangle');
+                    c1.classList.remove('flipped');
+                    c2.classList.remove('flipped');
+                    state.flipped = [];
+                    state.locked = false;
+                    
+                    // Switch Turn if Multi
+                    if (state.mode === 'local') {
+                        state.turn = state.turn === 1 ? 2 : 1;
+                        updateScoreUI();
+                    }
+                }, 1000);
+            }
+        }
+
+        function updateScoreUI() {
+            // Update Text
+            document.getElementById('disp-name-1').innerText = state.p1.name;
+            document.getElementById('disp-av-1').innerText = state.p1.avatar;
+            document.getElementById('score-p1').innerText = state.scores[1];
+
+            if (state.mode === 'local') {
+                document.getElementById('disp-name-2').innerText = state.p2.name;
+                document.getElementById('disp-av-2').innerText = state.p2.avatar;
+                document.getElementById('score-p2').innerText = state.scores[2];
+
+                // Turn Highlighting
+                const p1Box = document.getElementById('score-p1-box');
+                const p2Box = document.getElementById('score-p2-box');
+                
+                if (state.turn === 1) {
+                    p1Box.classList.add('active');
+                    p2Box.classList.remove('active');
+                } else {
+                    p1Box.classList.remove('active');
+                    p2Box.classList.add('active');
+                }
+            } else {
+                // Solo Mode UI fix
+                document.getElementById('score-p1-box').classList.add('active');
+            }
+        }
+
+        function startTimer() {
+            state.timerInterval = setInterval(() => {
+                state.timer++;
+                let m = Math.floor(state.timer / 60).toString().padStart(2,'0');
+                let s = (state.timer % 60).toString().padStart(2,'0');
+                document.getElementById('center-stat').innerText = `${m}:${s}`;
+            }, 1000);
+        }
+
+        function endGame() {
+            clearInterval(state.timerInterval);
+            const title = document.getElementById('end-title');
+            const msg = document.getElementById('end-msg');
+            const modal = document.getElementById('end-modal');
+
+            if (state.mode === 'solo') {
+                title.innerText = "Completed!";
+                msg.innerText = `Time: ${document.getElementById('center-stat').innerText}`;
+            } else {
+                if (state.scores[1] > state.scores[2]) {
+                    title.innerText = `${state.p1.name} Wins!`;
+                    msg.innerText = `${state.scores[1]} - ${state.scores[2]}`;
+                } else if (state.scores[2] > state.scores[1]) {
+                    title.innerText = `${state.p2.name} Wins!`;
+                    msg.innerText = `${state.scores[2]} - ${state.scores[1]}`;
+                } else {
+                    title.innerText = "It's a Tie!";
+                    msg.innerText = `${state.scores[1]} pairs each`;
+                }
+            }
+            setTimeout(() => modal.classList.add('visible'), 500);
+        }
+
+        function playSound(freq, type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.3);
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+    </script>
+</body>
+</html>
