@@ -17,7 +17,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
 
         body {
-            /* Replace MatchBG.png with your actual image path or a URL */
             background-image: url('MatchBG.png'); 
             background-size: cover;
             background-position: center;
@@ -31,10 +30,10 @@
             align-items: center;
             justify-content: center;
             color: #2d3436;
-            overflow: hidden; /* Prevents body scroll bars */
+            overflow: hidden;
         }
 
-        /* --- LOBBY SCREEN (No Changes) --- */
+        /* --- LOBBY SCREEN --- */
         .lobby-container {
             background: var(--glass);
             backdrop-filter: blur(15px);
@@ -141,7 +140,7 @@
             cursor: pointer;
         }
 
-        /* --- GAME UI (No Changes) --- */
+        /* --- GAME UI --- */
         header {
             width: fit-content;
             min-width: 300px;
@@ -285,16 +284,11 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
         }
 
-        /* * FIX FOR SCROLLING ON HARD (6x6) 
-         * The JavaScript now adds the class 'hard-difficulty' to the game-container
-         * if the 'hard' mode is selected, allowing us to shrink the cards.
-         */
         .game-container.hard-difficulty .card {
-            width: 60px; /* Slightly smaller cards for 6x6 to ensure vertical fit */
-            font-size: 1.7rem; /* Shrink font too */
+            width: 60px; 
+            font-size: 1.7rem; 
         }
         
-        /* Responsive tweaks */
         @media (max-width: 600px) {
             .card { width: 55px; font-size: 1.5rem; }
             .lobby-container { padding: 25px; }
@@ -304,6 +298,25 @@
              .game-container.hard-difficulty .card {
                 width: 45px; 
                 font-size: 1.2rem;
+            }
+
+            header#game-header {
+                flex-direction: column;
+                width: 90%;
+                border-radius: 20px;
+                padding: 12px;
+                text-align: center;
+                gap: 6px;
+            }
+            .scoreboard {
+                flex-direction: column;
+                gap: 6px;
+            }
+            #center-stat {
+                margin: 6px 0;
+            }
+            header button {
+                margin: 0;
             }
         }
     </style>
