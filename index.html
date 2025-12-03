@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pixel Dungeon: Memory Quest</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
     <style>
@@ -13,7 +13,7 @@
             --neon-green: #00ff9d;
             --neon-purple: #b900ff;
             --neon-blue: #00d2ff;
-            --glass-bg: rgba(45, 27, 78, 0.85);
+            --glass-bg: rgba(45, 27, 78, 0.9);
             --border-color: #ffffff;
             --text-color: #ffffff;
             
@@ -22,7 +22,7 @@
             --border-width: 4px;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
 
         body {
             background-color: var(--bg-dark);
@@ -38,7 +38,7 @@
             align-items: center;
             justify-content: center;
             color: var(--text-color);
-            overflow: hidden;
+            overflow: hidden; /* Prevent scroll on desktop */
             image-rendering: pixelated;
         }
 
@@ -90,6 +90,7 @@
             max-width: 600px;
             width: 90%;
             z-index: 10;
+            transition: all 0.3s;
         }
 
         .lobby-container h1 {
@@ -183,6 +184,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
         
         .avatar-select:hover {
@@ -227,6 +229,7 @@
             padding: 15px 30px;
             align-items: center;
             justify-content: center;
+            z-index: 50;
         }
 
         .scoreboard {
@@ -267,6 +270,7 @@
             background: rgba(0,0,0,0.6);
             border: 4px solid #fff;
             box-shadow: 0 0 0 4px var(--bg-dark), 0 0 0 8px var(--neon-purple); /* Double border effect */
+            z-index: 20;
         }
 
         .grid {
@@ -337,16 +341,121 @@
             padding: 40px;
             text-align: center;
             box-shadow: 10px 10px 0px var(--neon-purple);
+            max-width: 90%;
         }
 
-        /* Difficulty Tweaks */
-        .game-container.hard-difficulty .card { width: 50px; font-size: 1.5rem; }
-        
-        @media (max-width: 600px) {
-            .lobby-container { width: 95%; padding: 20px; }
-            .card { width: 55px; }
-            .game-container.hard-difficulty .card { width: 40px; font-size: 1rem; }
-            .sound-panel { top: 10px; right: 10px; transform: scale(0.8); transform-origin: top right; }
+        /* ------------------------------------------- */
+        /* --- MOBILE RESPONSIVENESS (@MEDIA) --- */
+        /* ------------------------------------------- */
+        @media (max-width: 768px) {
+            body {
+                /* Allow vertical scroll on small screens if content is tall */
+                overflow-y: auto;
+                justify-content: flex-start;
+                padding-top: 10px;
+                padding-bottom: 50px; /* Space for sound buttons */
+            }
+
+            h1 { font-size: 1.2rem; }
+
+            /* LOBBY MOBILE */
+            .lobby-container {
+                width: 95%;
+                padding: 15px;
+                margin-top: 20px;
+            }
+
+            .mode-select {
+                flex-direction: column; /* Stack buttons vertically */
+                gap: 10px;
+            }
+
+            .pixel-btn {
+                padding: 12px;
+                font-size: 0.8rem;
+            }
+            
+            .player-row {
+                gap: 8px;
+            }
+            
+            .avatar-select {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+
+            /* GAME UI MOBILE */
+            header {
+                width: 100%;
+                padding: 10px 5px;
+                margin-bottom: 10px;
+                flex-direction: row;
+                justify-content: space-between;
+                box-sizing: border-box;
+            }
+
+            .scoreboard {
+                gap: 10px;
+                font-size: 1.1rem;
+            }
+
+            #center-stat {
+                font-size: 0.6rem;
+                padding: 5px;
+            }
+
+            .game-container {
+                width: 96vw;
+                padding: 8px;
+                border-width: 2px;
+                box-shadow: 0 0 0 2px var(--bg-dark), 0 0 0 4px var(--neon-purple);
+            }
+
+            .grid {
+                gap: 6px; /* Tighter gap */
+            }
+
+            /* Fluid Card Sizing for Mobile */
+            /* Default: Fits 4 columns comfortably */
+            .card {
+                width: 20vw; /* Responsive width */
+                font-size: 1.5rem;
+                border-width: 2px;
+            }
+
+            .card-face {
+                border-width: 2px;
+            }
+
+            /* Difficulty Overrides for Mobile */
+            /* Easy/Medium (4 cols) */
+            .game-container .card { width: 20vw; } 
+            
+            /* Hard (6 cols) - Needs smaller cards to fit width */
+            .game-container.hard-difficulty .grid {
+                gap: 4px;
+            }
+            .game-container.hard-difficulty .card {
+                width: 13vw; /* Smaller width for 6 items across */
+                font-size: 1rem;
+            }
+
+            /* Move Sound Panel to bottom right to save header space */
+            .sound-panel {
+                top: auto;
+                bottom: 10px;
+                right: 10px;
+                transform: scale(0.9);
+                transform-origin: bottom right;
+            }
+
+            /* Modal Mobile */
+            .modal-content {
+                padding: 20px;
+                width: 90%;
+            }
+            .modal-content h2 { font-size: 1.2rem; }
         }
     </style>
 </head>
@@ -413,7 +522,7 @@
                 </div>
             </div>
         </div>
-        <button onclick="location.reload()" title="Restart" style="background:none; border:none; cursor:pointer; font-size:1.5rem; margin-left: 20px; filter: grayscale(1);">🔙</button>
+        <button onclick="location.reload()" title="Restart" style="background:none; border:none; cursor:pointer; font-size:1.5rem; margin-left: 10px; filter: grayscale(1);">🔙</button>
     </header>
 
     <div class="game-container" id="game-container">
