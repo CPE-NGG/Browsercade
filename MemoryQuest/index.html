@@ -68,22 +68,35 @@
             z-index: 999;
         }
 
-        /* --- NEW: BRAND HEADER (The Moving Browsercade Logo) --- */
+        /* --- UPDATED: BRAND HEADER --- */
         .brand-header {
             position: absolute;
-            top: 8%; /* Floats above the lobby */
+            top: 8%; 
             width: 100%;
             text-align: center;
             pointer-events: none;
             z-index: 5;
             animation: float 3s ease-in-out infinite;
-            transition: opacity 0.5s;
+            
+            /* FIX 1: Start Invisible */
+            opacity: 0; 
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        /* FIX 2: Class to make it appear */
+        .brand-header.visible {
+            opacity: 1;
+        }
+
+        /* FIX 3: Immediate visibility if session is active (refresh) */
+        html.session-active .brand-header {
+            opacity: 1 !important;
         }
 
         .brand-text {
             font-family: 'Press Start 2P', cursive;
             font-size: 2.5rem;
-            color: var(--neon-blue); /* Distinct System Color */
+            color: var(--neon-blue);
             text-shadow: 4px 4px 0px #000;
             letter-spacing: 4px;
         }
@@ -135,7 +148,6 @@
         .lobby-container {
             padding: 40px; text-align: center; max-width: 600px; width: 90%; z-index: 10;
             transition: all 0.5s ease-out; opacity: 0; transform: translateY(20px);
-            /* Ensure it sits below the header */
             margin-top: 60px; 
         }
         .lobby-container.visible { opacity: 1; transform: translateY(0); }
@@ -226,9 +238,6 @@
         @media (max-width: 768px) {
             body { overflow-y: auto; justify-content: flex-start; padding-top: 10px; padding-bottom: 50px; }
             
-            /* Responsive Header Logic: */
-            /* 1. Stop floating to save space/distraction */
-            /* 2. Move to top as static header */
             .brand-header {
                 position: relative;
                 top: auto;
@@ -236,16 +245,15 @@
                 animation: none; 
             }
             .brand-text {
-                font-size: 1.2rem; /* Much smaller size */
+                font-size: 1.2rem;
                 letter-spacing: 2px;
             }
 
             .lobby-container { 
                 width: 95%; padding: 15px; 
-                margin-top: 0; /* Remove extra desktop margin */
+                margin-top: 0;
             }
             
-            /* Game UI Tweaks */
             h1 { font-size: 1.2rem; }
             .mode-select { flex-direction: column; gap: 10px; }
             .pixel-btn { padding: 12px; font-size: 0.8rem; }
@@ -544,16 +552,12 @@
             const splash = document.getElementById('splash-screen');
             const lobby = document.getElementById('lobby');
             const prompt = document.getElementById('start-prompt');
+            const sysHeader = document.getElementById('sys-header');
             
-            // NOTE: The class 'session-active' is already added by the head script if needed.
-            // That script handled the visual hiding. Now we handle logic.
-
             if (document.documentElement.classList.contains('session-active')) {
-                // REFRESH: Attempt to play audio immediately
                 audioManager.init();
                 audioManager.startLobbyBGM();
             } else {
-                // FIRST LOAD: Setup Tap Logic
                 const handleStartTap = () => {
                     splash.removeEventListener('click', handleStartTap);
                     audioManager.init();
@@ -561,49 +565,47 @@
                     splash.classList.add('fade-out');
                     prompt.style.display = 'none';
                     
-                    // Set flag for next time
                     sessionStorage.setItem('browsercade_logo_seen', 'true');
                     
                     setTimeout(() => {
                         audioManager.startLobbyBGM();
                         lobby.classList.add('visible');
+                        
+                        // FIX: SYNC THE HEADER APPEARANCE HERE
+                        sysHeader.classList.add('visible');
                     }, 2500);
                 };
                 splash.addEventListener('click', handleStartTap);
             }
         };
 
-        // --- NEW: Soft Reset Function ---
         function returnToLobby() {
-            // Stop game stuff
             clearInterval(state.timerInterval);
             audioManager.stopAllBGM();
             
-            // UI Transition (Instant)
             document.getElementById('game-container').style.display = 'none';
             document.getElementById('game-header').style.display = 'none';
             document.getElementById('end-modal').classList.remove('visible');
             
-            // SHOW THE SYSTEM HEADER AGAIN
+            // SHOW HEADER & LOBBY
             document.getElementById('sys-header').classList.remove('hidden');
-
-            // Show Lobby
+            // If header was never visible (session reload edge case), ensure it is now
+            document.getElementById('sys-header').classList.add('visible');
+            
             const lobby = document.getElementById('lobby');
             lobby.classList.remove('hidden');
             lobby.style.opacity = '1';
             lobby.style.transform = 'translateY(0)';
             lobby.classList.add('visible');
             
-            // Start Lobby Music (Context is already unlocked)
             audioManager.startLobbyBGM();
             
-            // Reset Data (optional, but good practice)
             state.scores = { 1: 0, 2: 0 };
             state.flipped = [];
             state.locked = false;
             state.foundPairs = 0;
             state.timer = 0;
-            document.getElementById('grid').innerHTML = ''; // Clear board
+            document.getElementById('grid').innerHTML = ''; 
         }
 
         function setMode(mode) {
@@ -640,7 +642,6 @@
             document.getElementById('lobby').classList.add('hidden');
             document.getElementById('lobby').classList.remove('visible'); 
             
-            // HIDE THE SYSTEM HEADER TO SAVE SPACE
             document.getElementById('sys-header').classList.add('hidden');
 
             document.getElementById('game-header').style.display = 'flex';
