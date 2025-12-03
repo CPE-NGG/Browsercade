@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
     
     <script>
-        // Check storage immediately before painting the page to prevent logo flash
+        // Check storage immediately before painting the page
         if (sessionStorage.getItem('browsercade_logo_seen')) {
             document.documentElement.classList.add('session-active');
         }
@@ -15,7 +15,6 @@
 
     <style>
         :root {
-            /* Palette */
             --bg-dark: #1a0b2e;
             --bg-light: #2d1b4e;
             --neon-green: #00ff9d;
@@ -33,15 +32,12 @@
 
         body {
             background-color: var(--bg-dark);
-            
-            /* Moving Background (Diagonal Checkerboard) */
             background-image: 
                 linear-gradient(45deg, #261447 25%, transparent 25%, transparent 75%, #261447 75%, #261447),
                 linear-gradient(45deg, #261447 25%, transparent 25%, transparent 75%, #261447 75%, #261447);
             background-position: 0 0, 30px 30px;
             background-size: 60px 60px;
             animation: scrollBackground 8s linear infinite;
-
             font-family: 'VT323', monospace;
             min-height: 100vh;
             display: flex;
@@ -68,7 +64,7 @@
             z-index: 999;
         }
 
-        /* --- UPDATED: BRAND HEADER --- */
+        /* --- BRAND HEADER --- */
         .brand-header {
             position: absolute;
             top: 8%; 
@@ -77,21 +73,12 @@
             pointer-events: none;
             z-index: 5;
             animation: float 3s ease-in-out infinite;
-            
-            /* FIX 1: Start Invisible */
             opacity: 0; 
             transition: opacity 0.5s ease-in-out;
         }
 
-        /* FIX 2: Class to make it appear */
-        .brand-header.visible {
-            opacity: 1;
-        }
-
-        /* FIX 3: Immediate visibility if session is active (refresh) */
-        html.session-active .brand-header {
-            opacity: 1 !important;
-        }
+        .brand-header.visible { opacity: 1; }
+        html.session-active .brand-header { opacity: 1 !important; }
 
         .brand-text {
             font-family: 'Press Start 2P', cursive;
@@ -121,11 +108,36 @@
         }
         #splash-screen.fade-out { opacity: 0; pointer-events: none; }
         html.session-active #splash-screen { display: none !important; }
-        #splash-screen img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+        
+        /* --- UPDATED VIDEO STYLES (COVER + MOBILE FIX) --- */
+        #splash-screen video { 
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; 
+            
+            /* Use 100dvh to ignore mobile browser address bars */
+            height: 100dvh; 
+            
+            /* 'cover' zooms the video to fill the screen (no black bars) */
+            object-fit: cover; 
+            
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .vid-landscape { display: block; }
+        .vid-portrait { display: none; }
+
+        @media (orientation: portrait) {
+            .vid-landscape { display: none; }
+            .vid-portrait { display: block; }
+        }
+
         #start-prompt {
             position: absolute; bottom: 20%; font-family: 'Press Start 2P', cursive;
             color: var(--neon-green); font-size: 1rem; animation: blink 0.8s infinite;
             text-transform: uppercase; text-shadow: 2px 2px 0px #000; pointer-events: none;
+            z-index: 10; 
         }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
@@ -234,26 +246,11 @@
         .loot-glow { animation: glow 1s alternate infinite; color: var(--neon-gold); font-size: 3rem; margin-top: -20px; }
         @keyframes glow { from { text-shadow: 0 0 5px #fff; } to { text-shadow: 0 0 20px var(--neon-gold); } }
 
-        /* --- MOBILE ADJUSTMENTS --- */
         @media (max-width: 768px) {
             body { overflow-y: auto; justify-content: flex-start; padding-top: 10px; padding-bottom: 50px; }
-            
-            .brand-header {
-                position: relative;
-                top: auto;
-                margin-bottom: 15px;
-                animation: none; 
-            }
-            .brand-text {
-                font-size: 1.2rem;
-                letter-spacing: 2px;
-            }
-
-            .lobby-container { 
-                width: 95%; padding: 15px; 
-                margin-top: 0;
-            }
-            
+            .brand-header { position: relative; top: auto; margin-bottom: 15px; animation: none; }
+            .brand-text { font-size: 1.2rem; letter-spacing: 2px; }
+            .lobby-container { width: 95%; padding: 15px; margin-top: 0; }
             h1 { font-size: 1.2rem; }
             .mode-select { flex-direction: column; gap: 10px; }
             .pixel-btn { padding: 12px; font-size: 0.8rem; }
@@ -281,10 +278,14 @@
     </div>
 
     <div id="splash-screen">
-        <picture>
-            <source media="(orientation: portrait)" srcset="../assets/BrowsercadePR.png">
-            <img src="../assets/BrowsercadeLS.png" alt="Browsercade Logo">
-        </picture>
+        <video id="vid-ls" class="vid-landscape" autoplay muted loop playsinline>
+            <source src="../assets/BrowsercadeLS.mp4" type="video/mp4">
+        </video>
+        
+        <video id="vid-pr" class="vid-portrait" autoplay muted loop playsinline>
+            <source src="../assets/BrowsercadePR.mp4" type="video/mp4">
+        </video>
+
         <div id="start-prompt">TAP TO START</div>
     </div>
 
@@ -364,6 +365,21 @@
     </div>
 
     <script>
+        // --- VIDEO DEBUGGER ---
+        // Forces video play and logs exact error if it fails
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("Checking videos...");
+            const vids = document.querySelectorAll('video');
+            vids.forEach(v => {
+                v.play().then(() => {
+                    console.log("Video playing successfully:", v.querySelector('source').src);
+                }).catch(e => {
+                    console.error("Video failed to play:", e);
+                    console.error("Path attempted:", v.querySelector('source').src);
+                });
+            });
+        });
+
         // --- 8-BIT AUDIO ENGINE ---
         const audioManager = {
             ctx: new (window.AudioContext || window.webkitAudioContext)(),
