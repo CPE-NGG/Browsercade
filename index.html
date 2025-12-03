@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pixel Dungeon: Memory Quest</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    
+    <script>
+        // Check storage immediately before painting the page to prevent logo flash
+        if (sessionStorage.getItem('browsercade_logo_seen')) {
+            document.documentElement.classList.add('session-active');
+        }
+    </script>
+
     <style>
         :root {
             /* Palette */
@@ -13,11 +21,10 @@
             --neon-green: #00ff9d;
             --neon-purple: #b900ff;
             --neon-blue: #00d2ff;
+            --neon-gold: #ffd700;
             --glass-bg: rgba(45, 27, 78, 0.9);
             --border-color: #ffffff;
             --text-color: #ffffff;
-            
-            /* Dimensions */
             --pixel-size: 4px;
             --border-width: 4px;
         }
@@ -26,23 +33,21 @@
 
         body {
             background-color: var(--bg-dark);
-            /* Retro Grid Background */
             background-image: 
                 linear-gradient(rgba(185, 0, 255, 0.1) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(185, 0, 255, 0.1) 1px, transparent 1px);
             background-size: 40px 40px;
-            font-family: 'VT323', monospace; /* Body text font */
+            font-family: 'VT323', monospace;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             color: var(--text-color);
-            overflow: hidden; /* Prevent scroll on desktop */
+            overflow: hidden;
             image-rendering: pixelated;
         }
 
-        /* Scanline Overlay */
         body::after {
             content: "";
             position: absolute;
@@ -53,413 +58,174 @@
             z-index: 999;
         }
 
-        h1, h2, h3 {
-            font-family: 'Press Start 2P', cursive; /* Header font */
-            text-transform: uppercase;
-            text-shadow: 4px 4px 0px #000;
-            line-height: 1.5;
+        /* --- SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 2.5s ease-in-out;
+            cursor: pointer;
         }
 
-        /* --- PIXEL GLASS UI --- */
+        #splash-screen.fade-out { opacity: 0; pointer-events: none; }
+        
+        /* IMMEDIATE HIDE IF SESSION ACTIVE (Prevents Flash) */
+        html.session-active #splash-screen { display: none !important; }
+
+        #splash-screen img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+
+        #start-prompt {
+            position: absolute; bottom: 20%; font-family: 'Press Start 2P', cursive;
+            color: var(--neon-green); font-size: 1rem; animation: blink 0.8s infinite;
+            text-transform: uppercase; text-shadow: 2px 2px 0px #000; pointer-events: none;
+        }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        h1, h2, h3 { font-family: 'Press Start 2P', cursive; text-transform: uppercase; text-shadow: 4px 4px 0px #000; line-height: 1.5; }
+
+        /* --- UI COMPONENTS --- */
         .pixel-panel {
             background: var(--glass-bg);
-            /* Dither Pattern for "Pixel Glass" look */
             background-image: radial-gradient(#ffffff 15%, transparent 16%), radial-gradient(#ffffff 15%, transparent 16%);
-            background-size: 4px 4px;
-            background-position: 0 0, 2px 2px;
-            
+            background-size: 4px 4px; background-position: 0 0, 2px 2px;
             border: var(--border-width) solid var(--border-color);
-            box-shadow: 8px 8px 0px rgba(0,0,0,0.6); /* Chunky shadow */
-            position: relative;
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.6); position: relative;
         }
-
-        /* Decorative corners */
         .pixel-panel::before {
-            content: '';
-            position: absolute;
-            top: -4px; left: -4px; right: -4px; bottom: -4px;
-            border: 2px solid var(--neon-purple);
-            pointer-events: none;
-            z-index: -1;
+            content: ''; position: absolute; top: -4px; left: -4px; right: -4px; bottom: -4px;
+            border: 2px solid var(--neon-purple); pointer-events: none; z-index: -1;
         }
 
-        /* --- LOBBY SCREEN --- */
+        /* --- LOBBY --- */
         .lobby-container {
-            padding: 40px;
-            text-align: center;
-            max-width: 600px;
-            width: 90%;
-            z-index: 10;
-            transition: all 0.3s;
+            padding: 40px; text-align: center; max-width: 600px; width: 90%; z-index: 10;
+            transition: all 0.5s ease-out; opacity: 0; transform: translateY(20px);
         }
+        .lobby-container.visible { opacity: 1; transform: translateY(0); }
+        
+        /* IMMEDIATE SHOW IF SESSION ACTIVE */
+        html.session-active .lobby-container { opacity: 1 !important; transform: translateY(0) !important; }
 
-        .lobby-container h1 {
-            color: var(--neon-green);
-            margin-bottom: 30px;
-            font-size: 1.5rem;
-        }
+        .lobby-container h1 { color: var(--neon-green); margin-bottom: 30px; font-size: 1.5rem; }
 
-        .mode-select {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-
-        /* Retro Buttons */
+        .mode-select { display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; }
         .pixel-btn {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 0.7rem;
-            padding: 15px 20px;
-            background: #4a4a4a;
-            color: #fff;
-            border: 4px solid #fff;
-            cursor: pointer;
-            box-shadow: 4px 4px 0px #000;
-            transition: transform 0.1s, box-shadow 0.1s;
-            text-transform: uppercase;
+            font-family: 'Press Start 2P', cursive; font-size: 0.7rem; padding: 15px 20px;
+            background: #4a4a4a; color: #fff; border: 4px solid #fff; cursor: pointer;
+            box-shadow: 4px 4px 0px #000; transition: transform 0.1s, box-shadow 0.1s; text-transform: uppercase;
         }
+        .pixel-btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px var(--neon-green); background: #5a5a5a; }
+        .pixel-btn:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px #000; }
+        .pixel-btn.selected { background: var(--neon-purple); box-shadow: 4px 4px 0px var(--neon-green); }
+        .pixel-btn.primary { background: var(--neon-green); color: #000; width: 100%; font-size: 1rem; margin-top: 20px; }
+        .pixel-btn.primary:hover { background: #fff; box-shadow: 6px 6px 0px var(--neon-purple); }
 
-        .pixel-btn:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0px var(--neon-green);
-            background: #5a5a5a;
-        }
-
-        .pixel-btn:active {
-            transform: translate(2px, 2px);
-            box-shadow: 0px 0px 0px #000;
-        }
-
-        .pixel-btn.selected {
-            background: var(--neon-purple);
-            box-shadow: 4px 4px 0px var(--neon-green);
-        }
-
-        .pixel-btn.primary {
-            background: var(--neon-green);
-            color: #000;
-            width: 100%;
-            font-size: 1rem;
-            margin-top: 20px;
-        }
-
-        .pixel-btn.primary:hover {
-            background: #fff;
-            box-shadow: 6px 6px 0px var(--neon-purple);
-        }
-
-        /* Inputs */
         input, select {
-            font-family: 'VT323', monospace;
-            font-size: 1.5rem;
-            padding: 5px 10px;
-            background: #000;
-            color: var(--neon-green);
-            border: 2px solid #fff;
-            width: 100%;
-            outline: none;
-            text-transform: uppercase;
+            font-family: 'VT323', monospace; font-size: 1.5rem; padding: 5px 10px;
+            background: #000; color: var(--neon-green); border: 2px solid #fff; width: 100%; outline: none; text-transform: uppercase;
         }
-        
-        .player-setup {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        
-        .player-row {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
+        .player-setup { margin-bottom: 20px; text-align: left; }
+        .player-row { display: flex; gap: 15px; align-items: center; margin-bottom: 10px; }
         .avatar-select {
-            font-size: 2rem;
-            cursor: pointer;
-            background: #000;
-            border: 2px solid #fff;
-            width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
+            font-size: 2rem; cursor: pointer; background: #000; border: 2px solid #fff;
+            width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
-        
-        .avatar-select:hover {
-            border-color: var(--neon-green);
-        }
+        .avatar-select:hover { border-color: var(--neon-green); }
 
-        /* --- SOUND SETTINGS PANEL --- */
-        .sound-panel {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-            z-index: 100;
-        }
-
+        /* --- SOUND PANEL --- */
+        .sound-panel { position: fixed; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 100; }
         .sound-btn {
-            width: 40px;
-            height: 40px;
-            background: #000;
-            border: 2px solid #fff;
-            color: #555; /* Off state */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 1.2rem;
-            box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
+            width: 40px; height: 40px; background: #000; border: 2px solid #fff; color: #555;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            font-size: 1.2rem; box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
         }
-
-        .sound-btn.active {
-            color: var(--neon-green);
-            border-color: var(--neon-green);
-            text-shadow: 0 0 5px var(--neon-green);
-        }
+        .sound-btn.active { color: var(--neon-green); border-color: var(--neon-green); text-shadow: 0 0 5px var(--neon-green); }
 
         /* --- GAME UI --- */
-        header {
-            width: fit-content;
-            margin-bottom: 20px;
-            display: none;
-            padding: 15px 30px;
-            align-items: center;
-            justify-content: center;
-            z-index: 50;
-        }
+        header { width: fit-content; margin-bottom: 20px; display: none; padding: 15px 30px; align-items: center; justify-content: center; z-index: 50; }
+        .scoreboard { display: flex; gap: 30px; align-items: center; font-family: 'VT323', monospace; font-size: 1.5rem; }
+        .player-score { display: flex; align-items: center; gap: 10px; opacity: 0.5; border-bottom: 4px solid transparent; }
+        .player-score.active { opacity: 1; color: var(--neon-green); border-bottom: 4px solid var(--neon-green); text-shadow: 0 0 8px var(--neon-green); }
+        #center-stat { font-family: 'Press Start 2P'; font-size: 0.8rem; background: #000; padding: 8px; border: 2px solid #fff; }
 
-        .scoreboard {
-            display: flex;
-            gap: 30px;
-            align-items: center;
-            font-family: 'VT323', monospace;
-            font-size: 1.5rem;
-        }
-
-        .player-score {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            opacity: 0.5;
-            border-bottom: 4px solid transparent;
-        }
-
-        .player-score.active {
-            opacity: 1;
-            color: var(--neon-green);
-            border-bottom: 4px solid var(--neon-green);
-            text-shadow: 0 0 8px var(--neon-green);
-        }
-
-        #center-stat {
-            font-family: 'Press Start 2P';
-            font-size: 0.8rem;
-            background: #000;
-            padding: 8px;
-            border: 2px solid #fff;
-        }
-
-        /* --- GRID & CARDS --- */
+        /* --- GRID --- */
         .game-container {
-            display: none;
-            padding: 20px;
-            background: rgba(0,0,0,0.6);
-            border: 4px solid #fff;
-            box-shadow: 0 0 0 4px var(--bg-dark), 0 0 0 8px var(--neon-purple); /* Double border effect */
-            z-index: 20;
+            display: none; padding: 20px; background: rgba(0,0,0,0.6);
+            border: 4px solid #fff; box-shadow: 0 0 0 4px var(--bg-dark), 0 0 0 8px var(--neon-purple); z-index: 20;
         }
-
-        .grid {
-            display: grid;
-            gap: 15px;
-            margin: 0 auto;
-        }
-
-        .card {
-            position: relative;
-            cursor: pointer;
-            width: 70px;
-            aspect-ratio: 3/4;
-            transform-style: preserve-3d;
-            transition: transform 0.3s steps(5); /* Stepped animation for retro feel */
-        }
-
+        .grid { display: grid; gap: 15px; margin: 0 auto; }
+        .card { position: relative; cursor: pointer; width: 70px; aspect-ratio: 3/4; transform-style: preserve-3d; transition: transform 0.3s steps(5); }
         .card.flipped { transform: rotateY(180deg); }
-
         .card-face {
-            width: 100%; height: 100%; position: absolute;
-            display: flex; justify-content: center; align-items: center;
-            backface-visibility: hidden;
-            border: 4px solid #000;
+            width: 100%; height: 100%; position: absolute; display: flex; justify-content: center; align-items: center;
+            backface-visibility: hidden; border: 4px solid #000; font-size: 2rem; image-rendering: pixelated;
             box-shadow: inset 2px 2px 0px rgba(255,255,255,0.2), inset -2px -2px 0px rgba(0,0,0,0.2);
-            font-size: 2rem;
-            image-rendering: pixelated;
         }
-
-        /* Card Back: Pixel Pattern */
         .card-back {
             background-color: var(--neon-purple);
-            background-image: 
-                linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000),
-                linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000);
-            background-size: 10px 10px;
-            background-position: 0 0, 5px 5px;
+            background-image: linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000);
+            background-size: 10px 10px; background-position: 0 0, 5px 5px;
         }
-
-        /* Card Front: Item Slot style */
-        .card-front {
-            background: #222;
-            transform: rotateY(180deg);
-            border: 2px solid var(--neon-blue);
-        }
-
-        .card.matched .card-front {
-            background: var(--neon-green);
-            border-color: #fff;
-            box-shadow: 0 0 15px var(--neon-green);
-        }
-
+        .card-front { background: #222; transform: rotateY(180deg); border: 2px solid var(--neon-blue); }
+        .card.matched .card-front { background: var(--neon-green); border-color: #fff; box-shadow: 0 0 15px var(--neon-green); }
         .hidden { display: none !important; }
 
         /* Modal */
         .modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            display: flex; justify-content: center; align-items: center;
-            opacity: 0; pointer-events: none; transition: 0.2s;
-            z-index: 200;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85);
+            display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.2s; z-index: 200;
         }
         .modal.visible { opacity: 1; pointer-events: all; }
-        
         .modal-content {
-            border: 4px solid var(--neon-green);
-            background: #000;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 10px 10px 0px var(--neon-purple);
-            max-width: 90%;
+            border: 4px solid var(--neon-green); background: #000; padding: 40px; text-align: center;
+            box-shadow: 10px 10px 0px var(--neon-purple); max-width: 90%; position: relative;
         }
+        .victory-chest { font-size: 5rem; margin: 20px auto; display: inline-block; filter: drop-shadow(0px 0px 10px var(--neon-gold)); }
+        .chest-closed { animation: shake 1.5s ease-in-out infinite; }
+        .chest-open { animation: bounce 0.5s; }
+        @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(5deg); } 50% { transform: rotate(0eg); } 75% { transform: rotate(-5deg); } 100% { transform: rotate(0deg); } }
+        @keyframes bounce { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+        .loot-glow { animation: glow 1s alternate infinite; color: var(--neon-gold); font-size: 3rem; margin-top: -20px; }
+        @keyframes glow { from { text-shadow: 0 0 5px #fff; } to { text-shadow: 0 0 20px var(--neon-gold); } }
 
-        /* ------------------------------------------- */
-        /* --- MOBILE RESPONSIVENESS (@MEDIA) --- */
-        /* ------------------------------------------- */
         @media (max-width: 768px) {
-            body {
-                /* Allow vertical scroll on small screens if content is tall */
-                overflow-y: auto;
-                justify-content: flex-start;
-                padding-top: 10px;
-                padding-bottom: 50px; /* Space for sound buttons */
-            }
-
+            body { overflow-y: auto; justify-content: flex-start; padding-top: 10px; padding-bottom: 50px; }
             h1 { font-size: 1.2rem; }
-
-            /* LOBBY MOBILE */
-            .lobby-container {
-                width: 95%;
-                padding: 15px;
-                margin-top: 20px;
-            }
-
-            .mode-select {
-                flex-direction: column; /* Stack buttons vertically */
-                gap: 10px;
-            }
-
-            .pixel-btn {
-                padding: 12px;
-                font-size: 0.8rem;
-            }
-            
-            .player-row {
-                gap: 8px;
-            }
-            
-            .avatar-select {
-                width: 50px;
-                height: 50px;
-                font-size: 1.5rem;
-            }
-
-            /* GAME UI MOBILE */
-            header {
-                width: 100%;
-                padding: 10px 5px;
-                margin-bottom: 10px;
-                flex-direction: row;
-                justify-content: space-between;
-                box-sizing: border-box;
-            }
-
-            .scoreboard {
-                gap: 10px;
-                font-size: 1.1rem;
-            }
-
-            #center-stat {
-                font-size: 0.6rem;
-                padding: 5px;
-            }
-
-            .game-container {
-                width: 96vw;
-                padding: 8px;
-                border-width: 2px;
-                box-shadow: 0 0 0 2px var(--bg-dark), 0 0 0 4px var(--neon-purple);
-            }
-
-            .grid {
-                gap: 6px; /* Tighter gap */
-            }
-
-            /* Fluid Card Sizing for Mobile */
-            /* Default: Fits 4 columns comfortably */
-            .card {
-                width: 20vw; /* Responsive width */
-                font-size: 1.5rem;
-                border-width: 2px;
-            }
-
-            .card-face {
-                border-width: 2px;
-            }
-
-            /* Difficulty Overrides for Mobile */
-            /* Easy/Medium (4 cols) */
-            .game-container .card { width: 20vw; } 
-            
-            /* Hard (6 cols) - Needs smaller cards to fit width */
-            .game-container.hard-difficulty .grid {
-                gap: 4px;
-            }
-            .game-container.hard-difficulty .card {
-                width: 13vw; /* Smaller width for 6 items across */
-                font-size: 1rem;
-            }
-
-            /* Move Sound Panel to bottom right to save header space */
-            .sound-panel {
-                top: auto;
-                bottom: 10px;
-                right: 10px;
-                transform: scale(0.9);
-                transform-origin: bottom right;
-            }
-
-            /* Modal Mobile */
-            .modal-content {
-                padding: 20px;
-                width: 90%;
-            }
+            .lobby-container { width: 95%; padding: 15px; margin-top: 20px; }
+            .mode-select { flex-direction: column; gap: 10px; }
+            .pixel-btn { padding: 12px; font-size: 0.8rem; }
+            .player-row { gap: 8px; }
+            .avatar-select { width: 50px; height: 50px; font-size: 1.5rem; }
+            header { width: 100%; padding: 10px 5px; margin-bottom: 10px; flex-direction: row; justify-content: space-between; box-sizing: border-box; }
+            .scoreboard { gap: 10px; font-size: 1.1rem; }
+            #center-stat { font-size: 0.6rem; padding: 5px; }
+            .game-container { width: 96vw; padding: 8px; border-width: 2px; box-shadow: 0 0 0 2px var(--bg-dark), 0 0 0 4px var(--neon-purple); }
+            .grid { gap: 6px; }
+            .card { width: 20vw; font-size: 1.5rem; border-width: 2px; }
+            .card-face { border-width: 2px; }
+            .game-container.hard-difficulty .grid { gap: 4px; }
+            .game-container.hard-difficulty .card { width: 13vw; font-size: 1rem; }
+            .sound-panel { top: auto; bottom: 10px; right: 10px; transform: scale(0.9); transform-origin: bottom right; }
+            .modal-content { padding: 20px; width: 90%; }
             .modal-content h2 { font-size: 1.2rem; }
         }
     </style>
 </head>
 <body>
+
+    <div id="splash-screen">
+        <picture>
+            <source media="(orientation: portrait)" srcset="BrowsercadePR.png">
+            <img src="BrowsercadeLS.png" alt="Browsercade Logo">
+        </picture>
+        <div id="start-prompt">TAP TO START</div>
+    </div>
 
     <div class="sound-panel pixel-panel">
         <div class="sound-btn active" id="btn-bgm" onclick="audioManager.toggleBGM()" title="Toggle Music">🎵</div>
@@ -511,9 +277,7 @@
                     <span class="score-val" id="score-p1">000</span>
                 </div>
             </div>
-            
             <div id="center-stat">VS</div>
-
             <div class="player-score hidden" id="score-p2-box">
                 <span id="disp-av-2">🧝‍♀️</span>
                 <div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1;">
@@ -522,7 +286,7 @@
                 </div>
             </div>
         </div>
-        <button onclick="location.reload()" title="Restart" style="background:none; border:none; cursor:pointer; font-size:1.5rem; margin-left: 10px; filter: grayscale(1);">🔙</button>
+        <button onclick="returnToLobby()" title="Back to Lobby" style="background:none; border:none; cursor:pointer; font-size:1.5rem; margin-left: 10px; filter: grayscale(1);">🔙</button>
     </header>
 
     <div class="game-container" id="game-container">
@@ -532,8 +296,9 @@
     <div class="modal" id="end-modal">
         <div class="modal-content">
             <h2 id="end-title" style="color: var(--neon-green); margin-bottom: 20px;">QUEST COMPLETE</h2>
+            <div id="chest-container"></div>
             <p id="end-msg" style="margin: 20px 0; font-family:'VT323'; font-size: 1.5rem; color: #fff;"></p>
-            <button class="pixel-btn primary" onclick="location.reload()">PLAY AGAIN</button>
+            <button class="pixel-btn primary" onclick="returnToLobby()">PLAY AGAIN</button>
         </div>
     </div>
 
@@ -541,13 +306,15 @@
         // --- 8-BIT AUDIO ENGINE ---
         const audioManager = {
             ctx: new (window.AudioContext || window.webkitAudioContext)(),
-            bgmOscillators: [],
             isBGM: true,
             isSFX: true,
-            isPlaying: false,
+            isGameMusicPlaying: false,
+            isLobbyMusicPlaying: false,
+            gameLoopTimer: null,
+            lobbyLoopTimer: null,
 
             init: function() {
-                if (this.ctx.state === 'suspended') this.ctx.resume();
+                if (this.ctx.state === 'suspended') this.ctx.resume().catch(e => console.log('Audio resume waiting for gesture'));
             },
 
             toggleSFX: function() {
@@ -562,11 +329,14 @@
                 this.isBGM = !this.isBGM;
                 const btn = document.getElementById('btn-bgm');
                 btn.classList.toggle('active');
-                
                 if (this.isBGM) {
-                    this.startBGM();
+                    if (document.getElementById('lobby').classList.contains('hidden')) {
+                        this.startGameBGM();
+                    } else {
+                        this.startLobbyBGM();
+                    }
                 } else {
-                    this.stopBGM();
+                    this.stopAllBGM();
                 }
             },
 
@@ -579,130 +349,217 @@
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
                 osc.start(this.ctx.currentTime + time);
-                
-                // Envelope
                 gain.gain.setValueAtTime(0.1, this.ctx.currentTime + time);
                 gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + time + duration);
                 osc.stop(this.ctx.currentTime + time + duration);
             },
 
+            playCling: function() {
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle'; 
+                osc.frequency.setValueAtTime(1200, t); 
+                osc.frequency.exponentialRampToValueAtTime(800, t + 0.4);
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.3, t + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(t);
+                osc.stop(t + 1.5);
+            },
+
             playFlip: function() {
-                // Short digital blip
                 this.playTone(400, 'square', 0.1);
                 this.playTone(600, 'square', 0.05, 0.05);
             },
 
             playMatch: function() {
-                // Triumphant Fanfare (Major Arpeggio)
-                this.playTone(523.25, 'triangle', 0.2, 0);   // C5
-                this.playTone(659.25, 'triangle', 0.2, 0.1); // E5
-                this.playTone(783.99, 'triangle', 0.4, 0.2); // G5
-                this.playTone(1046.50, 'square', 0.6, 0.3);  // C6
+                this.playTone(523.25, 'triangle', 0.2, 0);
+                this.playTone(659.25, 'triangle', 0.2, 0.1);
+                this.playTone(783.99, 'triangle', 0.4, 0.2);
+                this.playTone(1046.50, 'square', 0.6, 0.3);
             },
 
             playWin: function() {
-                // Victory sequence
-                let now = 0;
                 [523, 523, 523, 659, 783, 659, 783, 1046].forEach((f, i) => {
                     let type = i % 2 === 0 ? 'square' : 'triangle';
                     this.playTone(f, type, 0.3, i * 0.15);
                 });
             },
 
-            // Simple generative ambient loop
-            startBGM: function() {
-                if (!this.isBGM || this.isPlaying) return;
-                this.isPlaying = true;
-                
-                const playLoop = () => {
-                    if (!this.isBGM) return;
-                    
-                    // Bass line (Low square wave)
+            playChestOpen: function() {
+                this.playTone(100, 'sawtooth', 0.5, 0); 
+                for(let i=0; i<10; i++) {
+                     this.playTone(1000 + (i*200), 'sine', 0.1, 0.5 + (i*0.05));
+                }
+            },
+
+            startLobbyBGM: function() {
+                if (!this.isBGM || this.isLobbyMusicPlaying) return;
+                this.stopAllBGM();
+                this.isLobbyMusicPlaying = true;
+                const lobbyLoop = () => {
+                    if (!this.isBGM || !this.isLobbyMusicPlaying) return;
+                    const bassOsc = this.ctx.createOscillator();
+                    const bassGain = this.ctx.createGain();
+                    bassOsc.type = 'triangle';
+                    bassOsc.frequency.value = 65.41;
+                    bassOsc.connect(bassGain);
+                    bassGain.connect(this.ctx.destination);
+                    bassGain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+                    bassGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 3);
+                    bassOsc.start();
+                    bassOsc.stop(this.ctx.currentTime + 3);
+                    const notes = [261, 311, 370, 440]; 
+                    notes.forEach((f, i) => {
+                         const osc = this.ctx.createOscillator();
+                         const g = this.ctx.createGain();
+                         osc.type = 'sine';
+                         osc.frequency.value = f;
+                         osc.connect(g);
+                         g.connect(this.ctx.destination);
+                         g.gain.setValueAtTime(0.02, this.ctx.currentTime + (i*0.5));
+                         g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + (i*0.5) + 0.4);
+                         osc.start(this.ctx.currentTime + (i*0.5));
+                         osc.stop(this.ctx.currentTime + (i*0.5) + 0.4);
+                    });
+                    this.lobbyLoopTimer = setTimeout(lobbyLoop, 4000);
+                };
+                lobbyLoop();
+            },
+
+            startGameBGM: function() {
+                if (!this.isBGM || this.isGameMusicPlaying) return;
+                this.stopAllBGM();
+                this.isGameMusicPlaying = true;
+                const gameLoop = () => {
+                    if (!this.isBGM || !this.isGameMusicPlaying) return;
                     const bassOsc = this.ctx.createOscillator();
                     const bassGain = this.ctx.createGain();
                     bassOsc.type = 'square';
-                    bassOsc.frequency.value = 110; // A2
+                    bassOsc.frequency.value = 110;
                     bassOsc.connect(bassGain);
                     bassGain.connect(this.ctx.destination);
-                    
                     bassGain.gain.setValueAtTime(0.03, this.ctx.currentTime);
                     bassGain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 2);
-                    
                     bassOsc.start();
                     bassOsc.stop(this.ctx.currentTime + 2);
-
-                    // High sparkle (random notes from pentatonic scale)
-                    const notes = [440, 523, 587, 659, 783]; // A Minor Pentatonic
+                    const notes = [440, 523, 587, 659, 783];
                     const note = notes[Math.floor(Math.random() * notes.length)];
-                    
                     const leadOsc = this.ctx.createOscillator();
                     const leadGain = this.ctx.createGain();
                     leadOsc.type = 'triangle';
                     leadOsc.frequency.value = note;
                     leadOsc.connect(leadGain);
                     leadGain.connect(this.ctx.destination);
-                    
                     leadGain.gain.setValueAtTime(0.02, this.ctx.currentTime);
                     leadGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 1.5);
-                    
                     leadOsc.start();
                     leadOsc.stop(this.ctx.currentTime + 1.5);
-
-                    this.bgmTimer = setTimeout(playLoop, 2000); // Loop every 2 seconds
+                    this.gameLoopTimer = setTimeout(gameLoop, 2000);
                 };
-                playLoop();
+                gameLoop();
             },
 
-            stopBGM: function() {
-                this.isPlaying = false;
-                clearTimeout(this.bgmTimer);
+            stopAllBGM: function() {
+                this.isGameMusicPlaying = false;
+                this.isLobbyMusicPlaying = false;
+                clearTimeout(this.gameLoopTimer);
+                clearTimeout(this.lobbyLoopTimer);
             }
         };
 
-        // --- ASSETS & CONFIG ---
-        // Using RPG-themed Emojis
         const AVATARS = ['🧙‍♂️', '🧝‍♀️', '🧛', '🧟', '🤖', '👾', '🐲', '🦄', '💀', '🤡'];
         const ICONS = ['🗡️','🛡️','🔮','💍','👑','🗝️','💎','🩸','🔥','❄️','🥩','🍷','📜','🧿','⚗️','💰','🕯️','📦'];
-        
         const CONFIG = {
             easy: { rows: 4, cols: 4, pairs: 8 },
             medium: { rows: 5, cols: 4, pairs: 10 },
             hard: { rows: 6, cols: 6, pairs: 18 }
         };
 
-        // --- GAME STATE ---
         let state = {
-            mode: 'solo', 
-            difficulty: 'medium',
-            turn: 1, 
-            scores: { 1: 0, 2: 0 },
-            cards: [],
-            flipped: [],
-            locked: false,
-            p1: { name: 'HERO', avatar: '🧙‍♂️' },
-            p2: { name: 'RIVAL', avatar: '🧝‍♀️' },
-            totalPairs: 0,
-            foundPairs: 0,
-            timer: 0,
-            timerInterval: null
+            mode: 'solo', difficulty: 'medium', turn: 1, scores: { 1: 0, 2: 0 },
+            cards: [], flipped: [], locked: false,
+            p1: { name: 'HERO', avatar: '🧙‍♂️' }, p2: { name: 'RIVAL', avatar: '🧝‍♀️' },
+            totalPairs: 0, foundPairs: 0, timer: 0, timerInterval: null
         };
 
-        // --- LOBBY LOGIC ---
+        window.onload = function() {
+            const splash = document.getElementById('splash-screen');
+            const lobby = document.getElementById('lobby');
+            const prompt = document.getElementById('start-prompt');
+            
+            // NOTE: The class 'session-active' is already added by the head script if needed.
+            // That script handled the visual hiding. Now we handle logic.
+
+            if (document.documentElement.classList.contains('session-active')) {
+                // REFRESH: Attempt to play audio immediately
+                audioManager.init();
+                audioManager.startLobbyBGM();
+            } else {
+                // FIRST LOAD: Setup Tap Logic
+                const handleStartTap = () => {
+                    splash.removeEventListener('click', handleStartTap);
+                    audioManager.init();
+                    audioManager.playCling();
+                    splash.classList.add('fade-out');
+                    prompt.style.display = 'none';
+                    
+                    // Set flag for next time
+                    sessionStorage.setItem('browsercade_logo_seen', 'true');
+                    
+                    setTimeout(() => {
+                        audioManager.startLobbyBGM();
+                        lobby.classList.add('visible');
+                    }, 2500);
+                };
+                splash.addEventListener('click', handleStartTap);
+            }
+        };
+
+        // --- NEW: Soft Reset Function ---
+        function returnToLobby() {
+            // Stop game stuff
+            clearInterval(state.timerInterval);
+            audioManager.stopAllBGM();
+            
+            // UI Transition (Instant)
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('game-header').style.display = 'none';
+            document.getElementById('end-modal').classList.remove('visible');
+            
+            // Show Lobby
+            const lobby = document.getElementById('lobby');
+            lobby.classList.remove('hidden');
+            lobby.style.opacity = '1';
+            lobby.style.transform = 'translateY(0)';
+            lobby.classList.add('visible');
+            
+            // Start Lobby Music (Context is already unlocked)
+            audioManager.startLobbyBGM();
+            
+            // Reset Data (optional, but good practice)
+            state.scores = { 1: 0, 2: 0 };
+            state.flipped = [];
+            state.locked = false;
+            state.foundPairs = 0;
+            state.timer = 0;
+            document.getElementById('grid').innerHTML = ''; // Clear board
+        }
+
         function setMode(mode) {
             state.mode = mode;
             document.querySelectorAll('.pixel-btn').forEach(b => b.classList.remove('selected'));
             event.target.classList.add('selected');
-
             const p2Setup = document.getElementById('setup-p2');
-            if (mode === 'local') {
-                p2Setup.classList.remove('hidden');
-            } else {
-                p2Setup.classList.add('hidden');
-            }
+            if (mode === 'local') p2Setup.classList.remove('hidden');
+            else p2Setup.classList.add('hidden');
         }
 
-        let avIdx1 = 0;
-        let avIdx2 = 1;
+        let avIdx1 = 0; let avIdx2 = 1;
         function cycleAvatar(p) {
             if (p === 1) {
                 avIdx1 = (avIdx1 + 1) % AVATARS.length;
@@ -714,26 +571,21 @@
         }
 
         function startGame() {
-            // Audio Start
             audioManager.init();
-            audioManager.playTone(880, 'square', 0.2); // Start chime
-            audioManager.startBGM();
-
-            // Get Data
+            audioManager.playTone(880, 'square', 0.2); 
+            audioManager.startGameBGM();
             state.difficulty = document.getElementById('difficulty').value;
             state.p1.name = document.getElementById('p1-name').value || 'HERO';
             state.p1.avatar = document.querySelector('#setup-p1 .avatar-select').innerText;
-            
             if (state.mode === 'local') {
                 state.p2.name = document.getElementById('p2-name').value || 'RIVAL';
                 state.p2.avatar = document.querySelector('#setup-p2 .avatar-select').innerText;
             }
-
-            // Transition
             document.getElementById('lobby').classList.add('hidden');
+            document.getElementById('lobby').classList.remove('visible'); // Ensure it hides for transition
+            
             document.getElementById('game-header').style.display = 'flex';
             document.getElementById('game-container').style.display = 'block';
-
             setupBoard();
             updateScoreUI();
         }
@@ -742,19 +594,13 @@
             const conf = CONFIG[state.difficulty];
             state.totalPairs = conf.pairs;
             const gameContainer = document.getElementById('game-container');
-
-            // Difficulty Class for CSS sizing
-            if (state.difficulty === 'hard') {
-                gameContainer.classList.add('hard-difficulty');
-            } else {
-                 gameContainer.classList.remove('hard-difficulty');
-            }
+            if (state.difficulty === 'hard') gameContainer.classList.add('hard-difficulty');
+            else gameContainer.classList.remove('hard-difficulty');
             
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
             grid.style.gridTemplateColumns = `repeat(${conf.cols}, 1fr)`;
 
-            // Deck Gen
             let deck = ICONS.slice(0, conf.pairs);
             deck = [...deck, ...deck];
             deck.sort(() => Math.random() - 0.5);
@@ -764,10 +610,7 @@
                 card.className = 'card';
                 card.dataset.icon = icon;
                 card.dataset.index = i;
-                card.innerHTML = `
-                    <div class="card-face card-front">${icon}</div>
-                    <div class="card-face card-back"></div>
-                `;
+                card.innerHTML = `<div class="card-face card-front">${icon}</div><div class="card-face card-back"></div>`;
                 card.onclick = () => handleCardClick(card);
                 grid.appendChild(card);
             });
@@ -780,46 +623,32 @@
             }
         }
 
-        // --- GAMEPLAY ---
         function handleCardClick(card) {
             if (state.locked || card.classList.contains('flipped') || card.classList.contains('matched')) return;
-
             audioManager.playFlip();
             card.classList.add('flipped');
             state.flipped.push(card);
-
-            if (state.flipped.length === 2) {
-                checkMatch();
-            }
+            if (state.flipped.length === 2) checkMatch();
         }
 
         function checkMatch() {
             state.locked = true;
             const [c1, c2] = state.flipped;
             const match = c1.dataset.icon === c2.dataset.icon;
-
             if (match) {
                 setTimeout(() => {
                     audioManager.playMatch();
-                    c1.classList.add('matched');
-                    c2.classList.add('matched');
-                    state.flipped = [];
-                    state.locked = false;
-                    
-                    state.scores[state.turn] += 100; // Retro score numbers
-                    state.foundPairs++;
+                    c1.classList.add('matched'); c2.classList.add('matched');
+                    state.flipped = []; state.locked = false;
+                    state.scores[state.turn] += 100; state.foundPairs++;
                     updateScoreUI();
-                    
                     if (state.foundPairs === state.totalPairs) endGame();
                 }, 400);
             } else {
                 setTimeout(() => {
-                    audioManager.playTone(150, 'sawtooth', 0.2); // Error buzz
-                    c1.classList.remove('flipped');
-                    c2.classList.remove('flipped');
-                    state.flipped = [];
-                    state.locked = false;
-                    
+                    audioManager.playTone(150, 'sawtooth', 0.2);
+                    c1.classList.remove('flipped'); c2.classList.remove('flipped');
+                    state.flipped = []; state.locked = false;
                     if (state.mode === 'local') {
                         state.turn = state.turn === 1 ? 2 : 1;
                         updateScoreUI();
@@ -831,24 +660,15 @@
         function updateScoreUI() {
             document.getElementById('disp-name-1').innerText = state.p1.name;
             document.getElementById('disp-av-1').innerText = state.p1.avatar;
-            // Pad scores with zeros like old games
             document.getElementById('score-p1').innerText = state.scores[1].toString().padStart(4, '0');
-
             if (state.mode === 'local') {
                 document.getElementById('disp-name-2').innerText = state.p2.name;
                 document.getElementById('disp-av-2').innerText = state.p2.avatar;
                 document.getElementById('score-p2').innerText = state.scores[2].toString().padStart(4, '0');
-
                 const p1Box = document.getElementById('score-p1-box');
                 const p2Box = document.getElementById('score-p2-box');
-                
-                if (state.turn === 1) {
-                    p1Box.classList.add('active');
-                    p2Box.classList.remove('active');
-                } else {
-                    p1Box.classList.remove('active');
-                    p2Box.classList.add('active');
-                }
+                if (state.turn === 1) { p1Box.classList.add('active'); p2Box.classList.remove('active'); } 
+                else { p1Box.classList.remove('active'); p2Box.classList.add('active'); }
             } else {
                 document.getElementById('score-p1-box').classList.add('active');
             }
@@ -865,13 +685,17 @@
 
         function endGame() {
             clearInterval(state.timerInterval);
-            audioManager.stopBGM();
+            audioManager.stopAllBGM();
             setTimeout(() => audioManager.playWin(), 500);
-
             const title = document.getElementById('end-title');
             const msg = document.getElementById('end-msg');
             const modal = document.getElementById('end-modal');
-
+            const chestContainer = document.getElementById('chest-container');
+            chestContainer.innerHTML = `<div class="victory-chest chest-closed">🧰</div>`;
+            setTimeout(() => {
+                chestContainer.innerHTML = `<div class="victory-chest chest-open">🗝️</div><div class="loot-glow">LOOT ACQUIRED</div>`;
+                audioManager.playChestOpen();
+            }, 2000);
             if (state.mode === 'solo') {
                 title.innerText = "DUNGEON CLEARED!";
                 msg.innerText = `FINAL SCORE: ${state.scores[1]}\n${document.getElementById('center-stat').innerText}`;
