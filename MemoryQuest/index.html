@@ -17,11 +17,10 @@
         :root {
             --bg-dark: #1a0b2e;
             --bg-light: #2d1b4e;
-            --neon-green: #00ff9d;
+            --neon-green: #00ff9d; /* Replaced Browsercade Blue with Pixel Green */
             --neon-purple: #b900ff;
-            --neon-blue: #00d2ff;
             --neon-gold: #ffd700;
-            --glass-bg: rgba(45, 27, 78, 0.9);
+            --glass-bg: rgba(45, 27, 78, 0.95);
             --border-color: #ffffff;
             --text-color: #ffffff;
             --pixel-size: 4px;
@@ -32,6 +31,7 @@
 
         body {
             background-color: var(--bg-dark);
+            /* Pixel Animated Background */
             background-image: 
                 linear-gradient(45deg, #261447 25%, transparent 25%, transparent 75%, #261447 75%, #261447),
                 linear-gradient(45deg, #261447 25%, transparent 25%, transparent 75%, #261447 75%, #261447);
@@ -83,7 +83,7 @@
         .brand-text {
             font-family: 'Press Start 2P', cursive;
             font-size: 2.5rem;
-            color: var(--neon-blue);
+            color: var(--neon-green); /* Updated color */
             text-shadow: 4px 4px 0px #000;
             letter-spacing: 4px;
         }
@@ -109,18 +109,11 @@
         #splash-screen.fade-out { opacity: 0; pointer-events: none; }
         html.session-active #splash-screen { display: none !important; }
         
-        /* --- UPDATED VIDEO STYLES (COVER + MOBILE FIX) --- */
         #splash-screen video { 
             position: absolute;
             top: 0; left: 0;
-            width: 100%; 
-            
-            /* Use 100dvh to ignore mobile browser address bars */
-            height: 100dvh; 
-            
-            /* 'cover' zooms the video to fill the screen (no black bars) */
+            width: 100%; height: 100dvh; 
             object-fit: cover; 
-            
             pointer-events: none;
             z-index: 1;
         }
@@ -156,6 +149,62 @@
             border: 2px solid var(--neon-purple); pointer-events: none; z-index: -1;
         }
 
+        /* --- TOP CONTROLS (NEW LOCATION) --- */
+        .top-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            width: 45px; height: 45px;
+            background: #000;
+            border: 3px solid #fff;
+            color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            font-size: 1.5rem;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .control-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px var(--neon-green);
+            border-color: var(--neon-green);
+        }
+        .control-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px;
+        }
+
+        /* --- TOOLTIP --- */
+        .tooltip-wrap { position: relative; }
+        .tooltip-content {
+            visibility: hidden; opacity: 0;
+            position: absolute; 
+            top: 100%; right: 0; /* Align to right edge of button */
+            margin-top: 15px;
+            width: 280px; 
+            background: #000; 
+            border: 4px solid var(--neon-green);
+            padding: 15px; 
+            z-index: 200; 
+            text-align: left;
+            box-shadow: 6px 6px 0px var(--neon-purple);
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+        .tooltip-wrap:hover .tooltip-content { visibility: visible; opacity: 1; pointer-events: auto; }
+        
+        .tooltip-text { font-family: 'VT323'; color: #fff; font-size: 1.2rem; line-height: 1.3; }
+        .tooltip-text h3 { color: var(--neon-green); font-size: 1rem; margin-bottom: 10px; border-bottom: 2px solid #fff; padding-bottom: 5px; }
+        .tooltip-text ul { padding-left: 20px; list-style-type: square; }
+        .tooltip-text li { margin-bottom: 8px; }
+
         /* --- LOBBY --- */
         .lobby-container {
             padding: 40px; text-align: center; max-width: 600px; width: 90%; z-index: 10;
@@ -168,10 +217,13 @@
         .lobby-container h1 { color: var(--neon-green); margin-bottom: 30px; font-size: 1.5rem; }
 
         .mode-select { display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; }
+        
+        /* Pixel Button Styling */
         .pixel-btn {
             font-family: 'Press Start 2P', cursive; font-size: 0.7rem; padding: 15px 20px;
             background: #4a4a4a; color: #fff; border: 4px solid #fff; cursor: pointer;
             box-shadow: 4px 4px 0px #000; transition: transform 0.1s, box-shadow 0.1s; text-transform: uppercase;
+            border-radius: 0 !important; /* Force sharp edges */
         }
         .pixel-btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px var(--neon-green); background: #5a5a5a; }
         .pixel-btn:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px #000; }
@@ -182,6 +234,7 @@
         input, select {
             font-family: 'VT323', monospace; font-size: 1.5rem; padding: 5px 10px;
             background: #000; color: var(--neon-green); border: 2px solid #fff; width: 100%; outline: none; text-transform: uppercase;
+            border-radius: 0;
         }
         .player-setup { margin-bottom: 20px; text-align: left; }
         .player-row { display: flex; gap: 15px; align-items: center; margin-bottom: 10px; }
@@ -191,14 +244,6 @@
         }
         .avatar-select:hover { border-color: var(--neon-green); }
 
-        /* --- SOUND PANEL --- */
-        .sound-panel { position: fixed; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 100; }
-        .sound-btn {
-            width: 40px; height: 40px; background: #000; border: 2px solid #fff; color: #555;
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            font-size: 1.2rem; box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
-        }
-        .sound-btn.active { color: var(--neon-green); border-color: var(--neon-green); text-shadow: 0 0 5px var(--neon-green); }
 
         /* --- GAME UI --- */
         header { width: fit-content; margin-bottom: 20px; display: none; padding: 15px 30px; align-items: center; justify-content: center; z-index: 50; }
@@ -224,11 +269,11 @@
             background-image: linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000);
             background-size: 10px 10px; background-position: 0 0, 5px 5px;
         }
-        .card-front { background: #222; transform: rotateY(180deg); border: 2px solid var(--neon-blue); }
+        .card-front { background: #222; transform: rotateY(180deg); border: 2px solid var(--neon-green); }
         .card.matched .card-front { background: var(--neon-green); border-color: #fff; box-shadow: 0 0 15px var(--neon-green); }
         .hidden { display: none !important; }
 
-        /* Modal */
+        /* Modal Structure */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85);
             display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.2s; z-index: 200;
@@ -237,7 +282,28 @@
         .modal-content {
             border: 4px solid var(--neon-green); background: #000; padding: 40px; text-align: center;
             box-shadow: 10px 10px 0px var(--neon-purple); max-width: 90%; position: relative;
+            min-width: 300px;
         }
+        .close-btn {
+            position: absolute; top: 10px; right: 10px; color: #fff; background: none; border: none; font-size: 1.5rem; cursor: pointer;
+        }
+        
+        /* Leaderboard Specifics */
+        .leaderboard-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-family: 'VT323'; font-size: 1.2rem; }
+        .leaderboard-table th { color: var(--neon-green); border-bottom: 2px solid #fff; padding: 5px; text-align: left; }
+        .leaderboard-table td { padding: 5px; border-bottom: 1px solid #333; text-align: left; }
+        .leaderboard-table tr:first-child td { color: var(--neon-gold); }
+
+        /* Settings Toggle */
+        .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-family: 'Press Start 2P'; font-size: 0.8rem; }
+        .pixel-toggle { width: 60px; height: 30px; border: 2px solid #fff; position: relative; cursor: pointer; background: #222; }
+        .pixel-toggle::after { 
+            content: ''; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; 
+            background: #555; transition: left 0.1s steps(2); 
+        }
+        .pixel-toggle.on { background: var(--neon-green); border-color: var(--neon-green); }
+        .pixel-toggle.on::after { left: 32px; background: #fff; }
+
         .victory-chest { font-size: 5rem; margin: 20px auto; display: inline-block; filter: drop-shadow(0px 0px 10px var(--neon-gold)); }
         .chest-closed { animation: shake 1.5s ease-in-out infinite; }
         .chest-open { animation: bounce 0.5s; }
@@ -265,9 +331,25 @@
             .card-face { border-width: 2px; }
             .game-container.hard-difficulty .grid { gap: 4px; }
             .game-container.hard-difficulty .card { width: 13vw; font-size: 1rem; }
-            .sound-panel { top: auto; bottom: 10px; right: 10px; transform: scale(0.9); transform-origin: bottom right; }
             .modal-content { padding: 20px; width: 90%; }
             .modal-content h2 { font-size: 1.2rem; }
+            
+            /* --- MOBILE TOP CONTROLS --- */
+            .top-controls { 
+                top: 10px; 
+                right: 10px; 
+                gap: 8px;
+                transform: scale(0.85); 
+                transform-origin: top right; 
+            }
+            
+            /* Adjust Tooltip for Mobile */
+            .tooltip-content {
+                width: 220px;
+                right: 0;
+                top: 110%;
+                margin-top: 5px;
+            }
         }
     </style>
 </head>
@@ -289,9 +371,24 @@
         <div id="start-prompt">TAP TO START</div>
     </div>
 
-    <div class="sound-panel pixel-panel">
-        <div class="sound-btn active" id="btn-bgm" onclick="audioManager.toggleBGM()" title="Toggle Music">🎵</div>
-        <div class="sound-btn active" id="btn-sfx" onclick="audioManager.toggleSFX()" title="Toggle SFX">🔊</div>
+    <!-- MOVED TO TOP RIGHT -->
+    <div class="top-controls">
+        <button class="control-btn" onclick="uiManager.openLeaderboard()">🏆</button>
+        <button class="control-btn" onclick="uiManager.openSettings()">⚙️</button>
+        <div class="tooltip-wrap">
+            <button class="control-btn">❓</button>
+            <div class="tooltip-content">
+                <div class="tooltip-text">
+                    <h3>DUNGEON RULES</h3>
+                    <ul>
+                        <li>Match all pairs to clear the dungeon!</li>
+                        <li>Earn 100 points per match.</li>
+                        <li><strong>Solo Mode:</strong> Beat your best time.</li>
+                        <li><strong>VS Mode:</strong> Take turns. Highest score wins.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="lobby-container pixel-panel" id="lobby">
@@ -303,7 +400,7 @@
         </div>
 
         <div class="player-setup" id="setup-p1">
-            <label style="color:var(--neon-blue); font-family:'Press Start 2P'; font-size: 0.6rem;">Player 1</label>
+            <label style="color:var(--neon-green); font-family:'Press Start 2P'; font-size: 0.6rem;">Player 1</label>
             <div class="player-row">
                 <div class="avatar-select" onclick="cycleAvatar(1)">🧙‍♂️</div>
                 <input type="text" id="p1-name" value="HERO" maxlength="8">
@@ -311,7 +408,7 @@
         </div>
 
         <div class="player-setup hidden" id="setup-p2">
-            <label style="color:var(--neon-blue); font-family:'Press Start 2P'; font-size: 0.6rem;">Player 2</label>
+            <label style="color:var(--neon-green); font-family:'Press Start 2P'; font-size: 0.6rem;">Player 2</label>
             <div class="player-row">
                 <div class="avatar-select" onclick="cycleAvatar(2)">🧝‍♀️</div>
                 <input type="text" id="p2-name" value="RIVAL" maxlength="8">
@@ -319,7 +416,7 @@
         </div>
 
         <div style="margin-bottom: 20px; text-align:left;">
-            <label style="color:var(--neon-blue); font-family:'Press Start 2P'; font-size: 0.6rem;">Dungeon Depth</label>
+            <label style="color:var(--neon-green); font-family:'Press Start 2P'; font-size: 0.6rem;">Dungeon Depth</label>
             <select id="difficulty" style="margin-top:5px;">
                 <option value="easy">Level 1 (4x4)</option>
                 <option value="medium" selected>Level 2 (5x4)</option>
@@ -355,6 +452,7 @@
         <div class="grid" id="grid"></div>
     </div>
 
+    <!-- Game End Modal -->
     <div class="modal" id="end-modal">
         <div class="modal-content">
             <h2 id="end-title" style="color: var(--neon-green); margin-bottom: 20px;">QUEST COMPLETE</h2>
@@ -364,21 +462,133 @@
         </div>
     </div>
 
+    <!-- Leaderboard Modal -->
+    <div class="modal" id="leaderboard-modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="uiManager.closeAllModals()">×</button>
+            <h2 style="color: var(--neon-gold);">HALL OF FAME</h2>
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>NAME</th>
+                        <th>SCORE</th>
+                        <th>TIME</th>
+                    </tr>
+                </thead>
+                <tbody id="lb-body"></tbody>
+            </table>
+            <div id="lb-empty" style="font-family:'VT323'; margin: 20px 0;">NO RECORDS YET</div>
+            <button class="pixel-btn" onclick="leaderboardManager.clear()">CLEAR RECORDS</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settings-modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <button class="close-btn" onclick="uiManager.closeAllModals()">×</button>
+            <h2 style="color: #fff; margin-bottom: 30px;">SETTINGS</h2>
+            
+            <div class="setting-row">
+                <span>MUSIC (BGM)</span>
+                <div id="set-bgm-toggle" class="pixel-toggle on" onclick="audioManager.toggleBGM()"></div>
+            </div>
+            
+            <div class="setting-row">
+                <span>SOUND (SFX)</span>
+                <div id="set-sfx-toggle" class="pixel-toggle on" onclick="audioManager.toggleSFX()"></div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- VIDEO DEBUGGER ---
-        // Forces video play and logs exact error if it fails
         document.addEventListener('DOMContentLoaded', () => {
-            console.log("Checking videos...");
             const vids = document.querySelectorAll('video');
             vids.forEach(v => {
-                v.play().then(() => {
-                    console.log("Video playing successfully:", v.querySelector('source').src);
-                }).catch(e => {
-                    console.error("Video failed to play:", e);
-                    console.error("Path attempted:", v.querySelector('source').src);
-                });
+                v.play().catch(e => console.log("Video autoplay prevented until interaction"));
+            });
+
+            // GLOBAL CLICK SFX LISTENER
+            document.addEventListener('click', (e) => {
+                if(e.target.matches('button, .pixel-btn, .control-btn, .avatar-select, .pixel-toggle, .close-btn') || 
+                   e.target.closest('button') || e.target.closest('.pixel-btn') || e.target.closest('.control-btn')) {
+                    audioManager.playClick();
+                }
             });
         });
+
+        // --- LEADERBOARD MANAGER ---
+        const leaderboardManager = {
+            key: 'pixel_dungeon_lb',
+            
+            save: function(name, score, timeStr, rawTime) {
+                let data = this.load();
+                data.push({ name, score, timeStr, rawTime, date: new Date().getTime() });
+                // Sort by Score (Desc), then Time (Asc)
+                data.sort((a, b) => {
+                    if (b.score !== a.score) return b.score - a.score;
+                    return a.rawTime - b.rawTime;
+                });
+                data = data.slice(0, 5); // Keep top 5
+                localStorage.setItem(this.key, JSON.stringify(data));
+            },
+
+            load: function() {
+                const stored = localStorage.getItem(this.key);
+                return stored ? JSON.parse(stored) : [];
+            },
+
+            clear: function() {
+                localStorage.removeItem(this.key);
+                uiManager.renderLeaderboard();
+            }
+        };
+
+        // --- UI MANAGER ---
+        const uiManager = {
+            openLeaderboard: function() {
+                this.renderLeaderboard();
+                document.getElementById('leaderboard-modal').classList.add('visible');
+            },
+            
+            renderLeaderboard: function() {
+                const data = leaderboardManager.load();
+                const tbody = document.getElementById('lb-body');
+                const emptyMsg = document.getElementById('lb-empty');
+                
+                tbody.innerHTML = '';
+                if(data.length === 0) {
+                    emptyMsg.style.display = 'block';
+                } else {
+                    emptyMsg.style.display = 'none';
+                    data.forEach((entry, i) => {
+                        const row = `<tr>
+                            <td>${i+1}</td>
+                            <td>${entry.name}</td>
+                            <td>${entry.score}</td>
+                            <td>${entry.timeStr}</td>
+                        </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                }
+            },
+
+            openSettings: function() {
+                // Sync toggles
+                const bgmToggle = document.getElementById('set-bgm-toggle');
+                const sfxToggle = document.getElementById('set-sfx-toggle');
+                
+                bgmToggle.className = audioManager.isBGM ? 'pixel-toggle on' : 'pixel-toggle';
+                sfxToggle.className = audioManager.isSFX ? 'pixel-toggle on' : 'pixel-toggle';
+                
+                document.getElementById('settings-modal').classList.add('visible');
+            },
+
+            closeAllModals: function() {
+                document.querySelectorAll('.modal').forEach(m => m.classList.remove('visible'));
+            }
+        };
 
         // --- 8-BIT AUDIO ENGINE ---
         const audioManager = {
@@ -396,16 +606,16 @@
 
             toggleSFX: function() {
                 this.isSFX = !this.isSFX;
-                const btn = document.getElementById('btn-sfx');
-                btn.classList.toggle('active');
-                btn.innerText = this.isSFX ? '🔊' : '🔇';
+                const toggle = document.getElementById('set-sfx-toggle');
+                if(toggle) toggle.className = this.isSFX ? 'pixel-toggle on' : 'pixel-toggle';
                 if(this.isSFX) this.playTone(600, 'square', 0.1);
             },
 
             toggleBGM: function() {
                 this.isBGM = !this.isBGM;
-                const btn = document.getElementById('btn-bgm');
-                btn.classList.toggle('active');
+                const toggle = document.getElementById('set-bgm-toggle');
+                if(toggle) toggle.className = this.isBGM ? 'pixel-toggle on' : 'pixel-toggle';
+
                 if (this.isBGM) {
                     if (document.getElementById('lobby').classList.contains('hidden')) {
                         this.startGameBGM();
@@ -429,6 +639,23 @@
                 gain.gain.setValueAtTime(0.1, this.ctx.currentTime + time);
                 gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + time + duration);
                 osc.stop(this.ctx.currentTime + time + duration);
+            },
+
+            playClick: function() {
+                if (!this.isSFX) return;
+                // Short high-pitched chip sound
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(800, t);
+                osc.frequency.exponentialRampToValueAtTime(1200, t + 0.05);
+                gain.gain.setValueAtTime(0.05, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(t);
+                osc.stop(t + 0.05);
             },
 
             playCling: function() {
@@ -586,8 +813,6 @@
                     setTimeout(() => {
                         audioManager.startLobbyBGM();
                         lobby.classList.add('visible');
-                        
-                        // FIX: SYNC THE HEADER APPEARANCE HERE
                         sysHeader.classList.add('visible');
                     }, 2500);
                 };
@@ -598,6 +823,7 @@
         function returnToLobby() {
             clearInterval(state.timerInterval);
             audioManager.stopAllBGM();
+            uiManager.closeAllModals(); // Ensure end modal closes
             
             document.getElementById('game-container').style.display = 'none';
             document.getElementById('game-header').style.display = 'none';
@@ -605,7 +831,6 @@
             
             // SHOW HEADER & LOBBY
             document.getElementById('sys-header').classList.remove('hidden');
-            // If header was never visible (session reload edge case), ensure it is now
             document.getElementById('sys-header').classList.add('visible');
             
             const lobby = document.getElementById('lobby');
@@ -767,14 +992,20 @@
             const msg = document.getElementById('end-msg');
             const modal = document.getElementById('end-modal');
             const chestContainer = document.getElementById('chest-container');
+            
             chestContainer.innerHTML = `<div class="victory-chest chest-closed">🧰</div>`;
             setTimeout(() => {
                 chestContainer.innerHTML = `<div class="victory-chest chest-open">🗝️</div><div class="loot-glow">LOOT ACQUIRED</div>`;
                 audioManager.playChestOpen();
             }, 2000);
+            
             if (state.mode === 'solo') {
                 title.innerText = "DUNGEON CLEARED!";
-                msg.innerText = `FINAL SCORE: ${state.scores[1]}\n${document.getElementById('center-stat').innerText}`;
+                const timeStr = document.getElementById('center-stat').innerText.replace('TIME ', '');
+                msg.innerText = `FINAL SCORE: ${state.scores[1]}\nTIME: ${timeStr}`;
+                
+                // SAVE TO LEADERBOARD
+                leaderboardManager.save(state.p1.name, state.scores[1], timeStr, state.timer);
             } else {
                 if (state.scores[1] > state.scores[2]) {
                     title.innerText = `${state.p1.name} WINS!`;
