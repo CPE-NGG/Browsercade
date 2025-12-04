@@ -5,7 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BROWSERCADE</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+
+    <script>
+        // Check storage immediately before painting the page
+        if (sessionStorage.getItem('browsercade_logo_seen')) {
+            document.documentElement.classList.add('session-active');
+        }
+    </script>
 
     <style>
         /* --- 1. CORE VARIABLES & RESET --- */
@@ -270,7 +277,100 @@
             50% { transform: translateY(-10px); }
         }
 
-        /* --- 9. RESPONSIVE QUERIES --- */
+        /* --- 9. SPLASH SCREEN (Ported) --- */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 2.5s ease-in-out;
+            cursor: pointer;
+        }
+        #splash-screen.fade-out { opacity: 0; pointer-events: none; }
+        html.session-active #splash-screen { display: none !important; }
+        
+        #splash-screen video { 
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100dvh; 
+            object-fit: cover; 
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .vid-landscape { display: block; }
+        .vid-portrait { display: none; }
+
+        @media (orientation: portrait) {
+            .vid-landscape { display: none; }
+            .vid-portrait { display: block; }
+        }
+
+        #start-prompt {
+            position: absolute; bottom: 20%; font-family: 'Press Start 2P', cursive;
+            color: var(--accent-secondary); font-size: 1rem; animation: blink 0.8s infinite;
+            text-transform: uppercase; text-shadow: 2px 2px 0px #000; pointer-events: none;
+            z-index: 10; 
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* --- 10. ABOUT ME --- */
+        .about-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 900;
+            cursor: help;
+        }
+
+        .about-icon {
+            background: #000;
+            border: 2px solid var(--accent-secondary);
+            color: var(--accent-secondary);
+            padding: 10px;
+            font-size: 0.8rem;
+            box-shadow: 4px 4px 0 #000;
+            transition: 0.2s;
+        }
+        
+        .about-icon:hover {
+            background: var(--accent-secondary);
+            color: #000;
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 var(--accent-primary);
+        }
+
+        .about-content {
+            position: absolute;
+            top: 120%;
+            right: 0;
+            width: 250px;
+            background: rgba(0,0,0,0.95);
+            border: 2px solid var(--accent-primary);
+            padding: 15px;
+            display: none;
+            text-align: left;
+            box-shadow: -6px 6px 0 rgba(0,0,0,0.5);
+        }
+
+        .about-badge:hover .about-content {
+            display: block;
+            animation: glitchFade 0.3s;
+        }
+
+        @keyframes glitchFade {
+            0% { opacity: 0; transform: translateX(10px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
+        .about-title { color: var(--accent-secondary); margin-bottom: 10px; border-bottom: 1px dashed #fff; padding-bottom: 5px; }
+        .about-text { font-family: 'VT323', monospace; font-size: 1.2rem; color: #fff; line-height: 1.2; }
+
+        /* --- 11. RESPONSIVE QUERIES --- */
         @media (max-width: 768px) {
             h1 { font-size: 2rem; }
             .logo-box { margin-top: 20px; margin-bottom: 40px; }
@@ -288,14 +388,42 @@
 
             .game-icon { font-size: 3rem; margin-top: 10px; }
             .play-btn { width: 100%; padding: 20px; } /* Large touch target */
+            
+            .about-content { width: 200px; }
         }
     </style>
 </head>
 <body>
 
+    <div id="splash-screen">
+        <video id="vid-ls" class="vid-landscape" autoplay muted loop playsinline>
+            <source src="../assets/BrowsercadeLS.mp4" type="video/mp4">
+        </video>
+        
+        <video id="vid-pr" class="vid-portrait" autoplay muted loop playsinline>
+            <source src="../assets/BrowsercadePR.mp4" type="video/mp4">
+        </video>
+
+        <div id="start-prompt">TAP TO START</div>
+    </div>
+
     <div class="sky-bg"></div>
     <div class="retro-bg"></div>
     <div class="scanlines"></div>
+
+    <div class="about-badge">
+        <div class="about-icon">ABOUT</div>
+        <div class="about-content">
+            <div class="about-title">SYSTEM CREDITS</div>
+            <div class="about-text">
+                > DEVELOPER: <span style="color:var(--accent-primary)">NICOLE GO / CPE-NGG</span><br>
+                > VERSION: 1.2.1<br>
+                > ENGINE: HTML5<br>
+                <br>
+                "A Collection of Classic Games"
+            </div>
+        </div>
+    </div>
 
     <main class="container">
         
@@ -337,40 +465,193 @@
     </main>
 
     <script>
-        // Simple Audio Context for UI Sounds (Pure JS, no assets needed)
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
+        /* --- AUDIO MANAGER --- */
+        const audioManager = {
+            ctx: null,
+            bgmOsc: null,
+            bgmGain: null,
+            lfo: null,
+            isPlaying: false,
 
-        // Function to create a retro "bloop" sound
-        function playHoverSound() {
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
+            init: function() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume().catch(e => console.log("Auto-resume waiting for interaction"));
+                }
+            },
+
+            /* Recreating the "Cling" sound from Pixel Dungeon for Splash */
+            playCling: function() {
+                this.init();
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle'; 
+                osc.frequency.setValueAtTime(1200, t); 
+                osc.frequency.exponentialRampToValueAtTime(800, t + 0.4);
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.3, t + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(t);
+                osc.stop(t + 1.5);
+            },
+
+            /* Hub Hover Sound (The "Bloop") */
+            playHover: function() {
+                if (!this.ctx) return;
+                // If context is suspended, try to resume
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'square'; 
+                osc.frequency.setValueAtTime(220, t); 
+                osc.frequency.exponentialRampToValueAtTime(880, t + 0.1);
+
+                gain.gain.setValueAtTime(0.05, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(t);
+                osc.stop(t + 0.1);
+            },
+
+            /* Hub BGM: Retro-Synthwave Arpeggio (Pleasant & Dreamy) */
+            startHubBGM: function() {
+                this.init();
+                
+                // Double check resume in case init() missed it
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume().then(() => {
+                        this.runSequencer();
+                    }).catch(() => {
+                        // Fallback: If browser refuses auto-resume, wait for next click
+                        const forceResume = () => {
+                            this.ctx.resume().then(() => this.runSequencer());
+                            document.removeEventListener('click', forceResume);
+                            document.removeEventListener('touchstart', forceResume);
+                        };
+                        document.addEventListener('click', forceResume);
+                        document.addEventListener('touchstart', forceResume);
+                    });
+                } else {
+                    this.runSequencer();
+                }
+            },
+
+            runSequencer: function() {
+                if (this.isPlaying) return;
+                this.isPlaying = true;
+
+                // 1. Bass Pad (Steady warm tone foundation)
+                const bassOsc = this.ctx.createOscillator();
+                const bassGain = this.ctx.createGain();
+                bassOsc.type = 'triangle'; // Richer than sine
+                bassOsc.frequency.value = 65.41; // C2 (Low C)
+                
+                // Low Pass Filter to make the bass warm/muffled
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 200;
+
+                bassOsc.connect(filter);
+                filter.connect(bassGain);
+                bassGain.connect(this.ctx.destination);
+                
+                // Gentle fade-in for bass
+                bassGain.gain.setValueAtTime(0, this.ctx.currentTime);
+                bassGain.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 2); 
+                
+                bassOsc.start();
+                this.bgmOsc = bassOsc; // Keep ref to stop if needed
+
+                // 2. Melody Sequencer (Dreamy C Major 7 Arpeggio)
+                const notes = [261.63, 329.63, 392.00, 493.88]; 
+                let index = 0;
+
+                const playNote = () => {
+                    if (!this.isPlaying) return; // Safety check
+
+                    const t = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    
+                    osc.type = 'sine'; // Sine waves are smooth and bell-like
+                    osc.frequency.value = notes[index];
+                    
+                    // Bell-like envelope: Fast attack, long decay
+                    gain.gain.setValueAtTime(0, t);
+                    gain.gain.linearRampToValueAtTime(0.05, t + 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 1.5);
+
+                    // Move to next note
+                    index = (index + 1) % notes.length;
+                    
+                    // Loop every 400ms (Mid-tempo)
+                    setTimeout(playNote, 400);
+                };
+                
+                playNote();
             }
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
+        };
 
-            oscillator.type = 'square'; // Square wave = 8-bit sound
-            oscillator.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
-            oscillator.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1); // Slide up
+        /* --- SPLASH SCREEN LOGIC --- */
+        window.onload = function() {
+            const splash = document.getElementById('splash-screen');
+            const prompt = document.getElementById('start-prompt');
+            
+            // Video Debugger
+            const vids = document.querySelectorAll('video');
+            vids.forEach(v => {
+                v.play().catch(e => console.log("Video autoplay prevented until interaction"));
+            });
 
-            gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            if (document.documentElement.classList.contains('session-active')) {
+                splash.style.display = 'none';
+                audioManager.startHubBGM();
+                
+            } else {
+                const handleStartTap = () => {
+                    splash.removeEventListener('click', handleStartTap);
+                    audioManager.init();
+                    audioManager.playCling();
+                    
+                    splash.classList.add('fade-out');
+                    prompt.style.display = 'none';
+                    
+                    sessionStorage.setItem('browsercade_logo_seen', 'true');
+                    
+                    setTimeout(() => {
+                        audioManager.startHubBGM(); 
+                    }, 500);
+                };
+                splash.addEventListener('click', handleStartTap);
+            }
+        };
 
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-
-            oscillator.start();
-            oscillator.stop(audioCtx.currentTime + 0.1);
-        }
-
-        // Add sound to all active game cards
+        // Add hover sounds to cards
         document.querySelectorAll('.game-card:not(.locked)').forEach(card => {
-            card.addEventListener('mouseenter', playHoverSound);
-            // Also play on touch for mobile feedback
-            card.addEventListener('touchstart', playHoverSound);
+            card.addEventListener('mouseenter', () => audioManager.playHover());
+            card.addEventListener('touchstart', () => audioManager.playHover());
         });
 
-        console.log("Browsercade Initialized. Cyber-Blue Theme Active.");
+        // Add hover sound to About Badge
+        document.querySelector('.about-badge').addEventListener('mouseenter', () => audioManager.playHover());
+
+        console.log("Browsercade Hub Initialized. Dreamy Synthwave Audio Active.");
     </script>
 </body>
 </html>

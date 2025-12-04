@@ -7,8 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
     
     <script>
-        // Check storage immediately before painting the page
-        if (sessionStorage.getItem('browsercade_logo_seen')) {
+        // Check for GAME-SPECIFIC storage key
+        if (sessionStorage.getItem('browsercade_memoryquest_logo_seen')) {
             document.documentElement.classList.add('session-active');
         }
     </script>
@@ -17,7 +17,7 @@
         :root {
             --bg-dark: #1a0b2e;
             --bg-light: #2d1b4e;
-            --neon-green: #00ff9d; /* Replaced Browsercade Blue with Pixel Green */
+            --neon-green: #00ff9d;
             --neon-purple: #b900ff;
             --neon-gold: #ffd700;
             --glass-bg: rgba(45, 27, 78, 0.95);
@@ -83,7 +83,7 @@
         .brand-text {
             font-family: 'Press Start 2P', cursive;
             font-size: 2.5rem;
-            color: var(--neon-green); /* Updated color */
+            color: var(--neon-green);
             text-shadow: 4px 4px 0px #000;
             letter-spacing: 4px;
         }
@@ -149,7 +149,7 @@
             border: 2px solid var(--neon-purple); pointer-events: none; z-index: -1;
         }
 
-        /* --- TOP CONTROLS (NEW LOCATION) --- */
+        /* --- TOP CONTROLS --- */
         .top-controls {
             position: fixed;
             top: 20px;
@@ -169,6 +169,7 @@
             font-size: 1.5rem;
             box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
             transition: transform 0.1s, box-shadow 0.1s;
+            text-decoration: none; /* For link buttons */
         }
 
         .control-btn:hover {
@@ -186,7 +187,7 @@
         .tooltip-content {
             visibility: hidden; opacity: 0;
             position: absolute; 
-            top: 100%; right: 0; /* Align to right edge of button */
+            top: 100%; right: 0; 
             margin-top: 15px;
             width: 280px; 
             background: #000; 
@@ -371,8 +372,8 @@
         <div id="start-prompt">TAP TO START</div>
     </div>
 
-    <!-- MOVED TO TOP RIGHT -->
     <div class="top-controls">
+        <button class="control-btn" onclick="window.location.href='../index.html'" title="Return to Hub">🏠</button>
         <button class="control-btn" onclick="uiManager.openLeaderboard()">🏆</button>
         <button class="control-btn" onclick="uiManager.openSettings()">⚙️</button>
         <div class="tooltip-wrap">
@@ -452,7 +453,6 @@
         <div class="grid" id="grid"></div>
     </div>
 
-    <!-- Game End Modal -->
     <div class="modal" id="end-modal">
         <div class="modal-content">
             <h2 id="end-title" style="color: var(--neon-green); margin-bottom: 20px;">QUEST COMPLETE</h2>
@@ -462,7 +462,6 @@
         </div>
     </div>
 
-    <!-- Leaderboard Modal -->
     <div class="modal" id="leaderboard-modal">
         <div class="modal-content">
             <button class="close-btn" onclick="uiManager.closeAllModals()">×</button>
@@ -483,7 +482,6 @@
         </div>
     </div>
 
-    <!-- Settings Modal -->
     <div class="modal" id="settings-modal">
         <div class="modal-content" style="max-width: 400px;">
             <button class="close-btn" onclick="uiManager.closeAllModals()">×</button>
@@ -797,6 +795,7 @@
             const prompt = document.getElementById('start-prompt');
             const sysHeader = document.getElementById('sys-header');
             
+            // Check for game-specific key
             if (document.documentElement.classList.contains('session-active')) {
                 audioManager.init();
                 audioManager.startLobbyBGM();
@@ -808,7 +807,8 @@
                     splash.classList.add('fade-out');
                     prompt.style.display = 'none';
                     
-                    sessionStorage.setItem('browsercade_logo_seen', 'true');
+                    // Use game-specific key so Hub logic doesn't interfere
+                    sessionStorage.setItem('browsercade_memoryquest_logo_seen', 'true');
                     
                     setTimeout(() => {
                         audioManager.startLobbyBGM();
@@ -818,6 +818,11 @@
                 };
                 splash.addEventListener('click', handleStartTap);
             }
+
+            // This forces the logo to play again next time they enter.
+            window.addEventListener('pagehide', () => {
+                sessionStorage.removeItem('browsercade_memoryquest_logo_seen');
+            });
         };
 
         function returnToLobby() {
