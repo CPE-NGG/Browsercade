@@ -218,7 +218,7 @@
             .vid-landscape { display: none; }
             .vid-portrait { display: block; }
             .brand-header { top: 5%; }
-            .brand-text { font-size: 1.2rem; letter-spacing: 2px; }
+            .brand-text { font-size: 1.5rem; letter-spacing: 2px; }
             #lobby h1 {
                 margin-top: 4rem !important;
                 font-size: 1.8rem !important;
@@ -227,6 +227,7 @@
             #lobby h1 span {
                 font-size: 1.2rem !important;
             }
+            
             .control-btn {
                 width: 32px;
                 height: 32px;
@@ -237,11 +238,13 @@
                 right: 5px;
                 top: 5px;
             }
+
             .modal-box {
                 width: 90% !important;
                 max-width: 350px;
                 padding: 1rem;
             }
+
             #start-prompt {
                 bottom: 15%;
                 font-size: 0.8rem;
@@ -393,11 +396,6 @@
     </div>
 
     <script>
-        /**
-         * BITBOX INFERNO
-         * Theme: Hell/Magma/Pixelated
-         */
-
         // --- AUDIO ENGINE ---
         const audioManager = {
             ctx: null,
@@ -675,7 +673,7 @@
                 
                 const s = this.width;
                 
-                // --- CHARACTER: OBSIDIAN GOLEM ---
+                // --- CHARACTER ---
                 // Body
                 ctx.fillStyle = '#292524'; // Stone-800
                 ctx.fillRect(-s/2, -s/2, s, s);
@@ -839,6 +837,11 @@
             audioManager.init();
             audioManager.playClick();
             audioManager.playMusic('game');
+
+            // Ensure we have the latest score from storage
+            state.highScore = parseInt(localStorage.getItem('bitbox_inferno_highscore')) || 0;
+            // Update the in-game display element
+            document.getElementById('highScoreDisplay').innerText = `BEST: ${state.highScore}`;
 
             const settings = DIFFICULTY_SETTINGS[state.difficulty];
 
