@@ -83,11 +83,6 @@
         .vid-landscape { display: block; }
         .vid-portrait { display: none; }
 
-        @media (orientation: portrait) {
-            .vid-landscape { display: none; }
-            .vid-portrait { display: block; }
-        }
-
         #start-prompt {
             position: absolute; bottom: 20%; font-family: 'Press Start 2P', cursive;
             color: #facc15; 
@@ -217,6 +212,41 @@
         
         #lobby { opacity: 0; pointer-events: none; }
         #lobby.visible { opacity: 1; pointer-events: auto; }
+
+        /* --- PORTRAIT & MOBILE OPTIMIZATION --- */
+        @media (orientation: portrait) {
+            .vid-landscape { display: none; }
+            .vid-portrait { display: block; }
+            .brand-header { top: 5%; }
+            .brand-text { font-size: 1.2rem; letter-spacing: 2px; }
+            #lobby h1 {
+                margin-top: 4rem !important;
+                font-size: 1.8rem !important;
+                line-height: 1.5 !important;
+            }
+            #lobby h1 span {
+                font-size: 1.2rem !important;
+            }
+            .control-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 0.9rem;
+            }
+            .top-controls {
+                gap: 5px;
+                right: 5px;
+                top: 5px;
+            }
+            .modal-box {
+                width: 90% !important;
+                max-width: 350px;
+                padding: 1rem;
+            }
+            #start-prompt {
+                bottom: 15%;
+                font-size: 0.8rem;
+            }
+        }
     </style>
 </head>
 <body class="select-none">
@@ -316,7 +346,7 @@
             <button class="close-btn absolute top-2 right-2 text-orange-500 text-xl hover:text-white font-bold">X</button>
             <h3 class="text-xl text-center text-orange-500 mb-4 border-b-4 border-orange-800 pb-2">HALL OF FLAME</h3>
             <div id="scoresList" class="flex-1 overflow-y-auto space-y-2 text-sm font-mono p-2 custom-scrollbar">
-                </div>
+            </div>
         </div>
     </div>
 
