@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bitbox Flapventure</title>
+    <title>Bitbox Flapventure: Magma</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         :root {
-            --brand-pink: #ec4899;
-            --lava-orange: #ea580c;
-            --magma-red: #7f1d1d;
-            --flare-yellow: #facc15;
+            --magma-dark: #1a0505;
+            --magma-mid: #450a0a;
+            --lava-bright: #f97316;
         }
 
         html, body {
@@ -25,25 +24,10 @@
             font-family: 'Press Start 2P', cursive;
             overflow: hidden;
             touch-action: none;
-            background-color: #450a0a;
-            
-            /* High Contrast RED/ORANGE/MAROON Background */
-            background-image: repeating-linear-gradient(
-                -45deg,
-                #450a0a,                 /* Red 950 (Dark Maroon) */
-                #450a0a 40px,
-                #7f1d1d 40px,            /* Red 900 (Brick Red) */
-                #7f1d1d 80px
-            );
-            background-size: 200% 200%;
-            animation: bgFlow 15s linear infinite;
+            background-color: var(--magma-dark);
+            color: #fff;
         }
 
-        @keyframes bgFlow {
-            0% { background-position: 0% 0%; }
-            100% { background-position: 100% 100%; }
-        }
-        
         /* --- BRAND HEADER --- */
         .brand-header {
             position: absolute;
@@ -51,7 +35,7 @@
             width: 100%;
             text-align: center;
             pointer-events: none;
-            z-index: 5;
+            z-index: 50; 
             animation: float 3s ease-in-out infinite;
             opacity: 0; 
             transition: opacity 0.5s ease-in-out;
@@ -61,9 +45,9 @@
 
         .brand-text {
             font-family: 'Press Start 2P', cursive;
-            font-size: 1.5rem;
+            font-size: 2.5rem;
             color: #fff;
-            text-shadow: 4px 4px 0px #ea580c; /* Orange Shadow */
+            text-shadow: 4px 4px 0px #ea580c;
             letter-spacing: 4px;
         }
 
@@ -82,7 +66,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: opacity 2.5s ease-in-out;
+            transition: opacity 1.5s ease-in-out;
             cursor: pointer;
         }
         #splash-screen.fade-out { opacity: 0; pointer-events: none; }
@@ -106,7 +90,7 @@
 
         #start-prompt {
             position: absolute; bottom: 20%; font-family: 'Press Start 2P', cursive;
-            color: #facc15; /* Yellow prompt */
+            color: #facc15; 
             font-size: 1rem; animation: blink 0.8s infinite;
             text-transform: uppercase; text-shadow: 2px 2px 0px #000; pointer-events: none;
             z-index: 10; 
@@ -124,10 +108,9 @@
             font-size: 0.8rem;
         }
 
-        /* Hover Effect for ALL buttons */
         .pixel-btn:hover, .control-btn:hover, .diff-btn:hover {
             transform: translateY(-2px);
-            filter: brightness(1.15); /* Make brighter on hover */
+            filter: brightness(1.15); 
         }
 
         .pixel-btn:active {
@@ -135,11 +118,10 @@
             box-shadow: 1px 1px 0px 0px rgba(0,0,0,0.5);
         }
 
-        /* Button Variants (Warm Theme) */
-        .btn-primary { background-color: #ea580c; color: white; border-color: #9a3412; } /* Orange */
-        .btn-secondary { background-color: #be123c; color: white; border-color: #881337; } /* Rose/Red */
-        .btn-accent { background-color: #d97706; color: white; border-color: #b45309; } /* Amber */
-        .btn-danger { background-color: #991b1b; color: white; border-color: #7f1d1d; } /* Dark Red */
+        .btn-primary { background-color: #ea580c; color: white; border-color: #9a3412; } 
+        .btn-secondary { background-color: #be123c; color: white; border-color: #881337; } 
+        .btn-accent { background-color: #d97706; color: white; border-color: #b45309; } 
+        .btn-danger { background-color: #7f1d1d; color: white; border-color: #450a0a; } 
 
         /* Top Controls */
         .top-controls {
@@ -152,7 +134,7 @@
         }
         
         .control-btn {
-            background: #fff;
+            background: #2a0a0a;
             border: 2px solid #ea580c;
             color: #ea580c;
             width: 40px;
@@ -162,40 +144,42 @@
             justify-content: center;
             font-size: 1.2rem;
             cursor: pointer;
-            box-shadow: 4px 4px 0 #9a3412;
+            box-shadow: 4px 4px 0 #000;
             transition: all 0.2s;
         }
-        .control-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #9a3412; }
+        .control-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
 
         /* Difficulty Buttons */
         .diff-btn {
             padding: 8px;
             font-size: 0.6rem;
-            border: 2px solid #fff;
+            border: 2px solid #555;
             cursor: pointer;
-            background: #7f1d1d; /* Dark Red */
-            color: #fff;
-            box-shadow: 3px 3px 0 rgba(0,0,0,0.3);
+            background: #292524; 
+            color: #999;
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.5);
             transition: all 0.2s;
         }
         .diff-btn.active {
-            background: #f97316; /* Bright Orange */
+            background: #ea580c; 
             color: white;
+            border-color: #fff;
             box-shadow: inset 2px 2px 0 rgba(0,0,0,0.2);
-            border-color: #c2410c;
         }
 
         /* Modals */
         .modal-overlay {
-            background: rgba(40, 10, 10, 0.9); /* Dark Red Tint */
+            background: rgba(10, 5, 5, 0.95); 
             backdrop-filter: blur(4px);
         }
 
+        /* UNIFIED MODAL BOX STYLE */
         .modal-box {
-            background: #fff;
-            border: 4px solid #ea580c;
-            box-shadow: 8px 8px 0 rgba(0,0,0,0.5);
+            background: #1c1917; /* Dark Stone */
+            border: 4px solid #ea580c; /* Orange Brand Color */
+            box-shadow: 8px 8px 0 rgba(0,0,0,0.8);
             text-align: center;
+            color: white;
         }
 
         /* Toggle Switch */
@@ -213,20 +197,20 @@
         /* Input Field */
         .pixel-input {
             font-family: 'Press Start 2P', cursive;
-            background: #fff;
+            background: #292524;
             border: 4px solid #ea580c;
-            color: #9a3412;
+            color: #fff;
             outline: none;
-            box-shadow: inset 4px 4px 0px rgba(0,0,0,0.1);
+            box-shadow: inset 4px 4px 0px rgba(0,0,0,0.3);
         }
-        .pixel-input::placeholder { color: #fdba74; }
+        .pixel-input::placeholder { color: #777; }
 
         /* Canvas */
         canvas { 
             display: block; 
             width: 100%; 
             height: 100%;
-            image-rendering: pixelated;
+            image-rendering: pixelated;      
             image-rendering: crisp-edges;
         }
         .hidden { display: none !important; }
@@ -235,7 +219,7 @@
         #lobby.visible { opacity: 1; pointer-events: auto; }
     </style>
 </head>
-<body class="text-orange-900 select-none">
+<body class="select-none">
 
     <div class="brand-header" id="sys-header">
         <div class="brand-text">BROWSERCADE</div>
@@ -256,8 +240,8 @@
     <div id="lobbyControls" class="top-controls transition-opacity duration-300">
         <button class="control-btn" onclick="window.location.href='../index.html'" title="Return to Hub">🏠</button>
         <button class="control-btn" id="lobbyLeaderboardBtn" title="Leaderboard">🏆</button>
-        <button class="control-btn" id="lobbyRulesBtn" title="Rules">📜</button>
         <button class="control-btn" id="lobbySettingsBtn" title="Settings">⚙️</button>
+        <button class="control-btn" id="lobbyRulesBtn" title="Rules">❓</button>
     </div>
 
     <div id="gameControls" class="top-controls hidden">
@@ -266,17 +250,17 @@
 
     <div id="lobby" class="absolute inset-0 z-30 flex flex-col items-center justify-center transition-all duration-300">
         <h1 class="text-4xl md:text-6xl text-white mb-2 text-center drop-shadow-[4px_4px_0_#9a3412] leading-normal mt-12">
-            BITBOX<br><span class="text-orange-400 text-2xl md:text-4xl">FLAPVENTURE</span>
+            BITBOX<br><span class="text-orange-500 text-2xl md:text-4xl">FLAPVENTURE</span>
         </h1>
         
         <div class="modal-box p-6 max-w-md w-11/12 mx-auto mt-4">
             <div class="mb-4">
-                <label for="playerName" class="block text-xs text-orange-800 mb-2">PILOT NAME</label>
+                <label for="playerName" class="block text-xs text-orange-500 mb-2">DEMON NAME</label>
                 <input type="text" id="playerName" class="pixel-input w-full p-2 text-center text-sm" placeholder="ENTER NAME" maxlength="8">
             </div>
 
             <div class="mb-6">
-                <label class="block text-xs text-orange-800 mb-2">DIFFICULTY</label>
+                <label class="block text-xs text-orange-500 mb-2">DIFFICULTY</label>
                 <div class="flex justify-center gap-2">
                     <button class="diff-btn" data-mode="EASY">EASY</button>
                     <button class="diff-btn active" data-mode="NORMAL">AVG</button>
@@ -285,35 +269,35 @@
             </div>
             
             <button id="startBtn" class="pixel-btn btn-primary w-full font-bold py-4 px-6 mb-2">
-                START FLIGHT
+                IGNITE
             </button>
         </div>
     </div>
 
     <div id="gameUI" class="hidden absolute top-0 left-0 w-full p-4 z-20 flex flex-col items-start pointer-events-none">
         <div class="text-white text-4xl drop-shadow-[4px_4px_0_#000]" id="currentScore">0</div>
-        <div id="highScoreDisplay" class="text-orange-200 text-sm drop-shadow-[2px_2px_0_#000] mt-1">BEST: 0</div>
+        <div id="highScoreDisplay" class="text-orange-400 text-sm drop-shadow-[2px_2px_0_#000] mt-1">BEST: 0</div>
     </div>
 
     <div id="pauseMenu" class="hidden absolute inset-0 z-50 modal-overlay flex flex-col items-center justify-center">
         <div class="modal-box p-8 w-72 flex flex-col items-center">
-            <h2 class="text-2xl text-orange-600 mb-6 border-b-4 border-orange-200 w-full pb-2">PAUSED</h2>
+            <h2 class="text-2xl text-orange-600 mb-6 border-b-4 border-orange-900 w-full pb-2">FROZEN</h2>
             <div class="flex flex-col gap-4 w-full">
                 <button id="resumeBtn" class="pixel-btn btn-primary py-3">RESUME</button>
                 <button id="pauseSettingsBtn" class="pixel-btn btn-accent py-3">SETTINGS</button>
                 <button id="pauseRestartBtn" class="pixel-btn btn-secondary py-3">RESTART</button>
-                <button id="pauseHomeBtn" class="pixel-btn btn-danger py-3">QUIT TO LOBBY</button>
+                <button id="pauseHomeBtn" class="pixel-btn btn-danger py-3">GIVE UP</button>
             </div>
         </div>
     </div>
 
     <div id="gameOver" class="hidden absolute inset-0 z-40 flex flex-col items-center justify-center modal-overlay">
-        <h2 class="text-5xl text-orange-500 mb-4 drop-shadow-[4px_4px_0_#fff]">CRASHED!</h2>
+        <h2 class="text-5xl text-orange-600 mb-4 drop-shadow-[4px_4px_0_#000]">BURNED!</h2>
         <div class="modal-box p-6 w-80">
-            <p class="text-gray-600 text-sm mb-2">SCORE</p>
-            <p id="finalScore" class="text-4xl mb-4 text-orange-600">0</p>
-            <p class="text-gray-600 text-sm mb-2">BEST</p>
-            <p id="finalBest" class="text-2xl mb-6 text-orange-400">0</p>
+            <p class="text-gray-400 text-sm mb-2">SCORE</p>
+            <p id="finalScore" class="text-4xl mb-4 text-white">0</p>
+            <p class="text-gray-400 text-sm mb-2">BEST</p>
+            <p id="finalBest" class="text-2xl mb-6 text-orange-500">0</p>
             
             <div class="flex flex-col gap-3">
                 <button id="restartBtn" class="pixel-btn btn-primary py-3 px-8">
@@ -327,17 +311,29 @@
     </div>
 
     <div id="leaderboardModal" class="hidden absolute inset-0 z-50 flex items-center justify-center modal-overlay">
-        <div class="bg-orange-100 p-6 border-4 border-orange-600 w-11/12 max-w-md h-3/4 flex flex-col relative shadow-[8px_8px_0_rgba(0,0,0,0.5)]">
-            <button class="close-btn absolute top-2 right-2 text-orange-800 text-xl hover:text-orange-600 font-bold">X</button>
-            <h3 class="text-xl text-center text-orange-800 mb-4 border-b-4 border-orange-300 pb-2">TOP SCORES</h3>
-            <div id="scoresList" class="flex-1 overflow-y-auto space-y-2 text-sm font-mono p-2">
+        <div class="bg-stone-900 p-6 border-4 border-orange-600 w-11/12 max-w-md h-3/4 flex flex-col relative shadow-[8px_8px_0_rgba(0,0,0,0.8)]">
+            <button id="clearHistoryBtn" class="absolute top-2 left-2 text-red-500 text-xs hover:text-white font-bold border border-red-900 p-1 px-2 pixel-btn bg-stone-950">WIPE</button>
+            <button class="close-btn absolute top-2 right-2 text-orange-500 text-xl hover:text-white font-bold">X</button>
+            <h3 class="text-xl text-center text-orange-500 mb-4 border-b-4 border-orange-800 pb-2">HALL OF FLAME</h3>
+            <div id="scoresList" class="flex-1 overflow-y-auto space-y-2 text-sm font-mono p-2 custom-scrollbar">
                 </div>
         </div>
     </div>
 
+    <div id="wipeModal" class="hidden absolute inset-0 z-[60] flex items-center justify-center modal-overlay">
+        <div class="modal-box p-6 w-72">
+            <h3 class="text-orange-500 mb-4 text-sm font-bold">WIPE ALL HISTORY?</h3>
+            <p class="text-xs text-gray-400 mb-6 leading-relaxed">THIS ACTION IS PERMANENT AND CANNOT BE UNDONE.</p>
+            <div class="flex gap-4 justify-center">
+                <button id="confirmWipeBtn" class="pixel-btn btn-primary py-3 px-4 text-xs">YES, WIPE</button>
+                <button id="cancelWipeBtn" class="pixel-btn btn-secondary py-3 px-4 text-xs">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
     <div id="settingsModal" class="hidden absolute inset-0 z-50 flex items-center justify-center modal-overlay">
-        <div class="bg-red-900 p-8 border-4 border-white w-80 text-white text-center shadow-[8px_8px_0_rgba(0,0,0,0.5)]">
-            <h3 class="text-2xl mb-6">SETTINGS</h3>
+        <div class="modal-box p-8 w-80">
+            <h3 class="text-2xl mb-6 text-orange-500">SETTINGS</h3>
             
             <div class="flex justify-between items-center mb-6">
                 <span>MUSIC</span>
@@ -349,27 +345,27 @@
                 <div id="sfxToggle" class="pixel-toggle on"></div>
             </div>
 
-            <button class="close-btn pixel-btn bg-white text-red-900 py-2 px-6 border-2 border-gray-400">CLOSE</button>
+            <button class="close-btn pixel-btn btn-primary w-full py-2">CLOSE</button>
         </div>
     </div>
 
     <div id="rulesModal" class="hidden absolute inset-0 z-50 flex items-center justify-center modal-overlay">
         <div class="modal-box p-6 w-11/12 max-w-md">
-            <h3 class="text-xl text-center text-orange-600 mb-4">HOW TO PLAY</h3>
-            <ul class="text-sm space-y-3 font-mono text-gray-700 mb-6">
-                <li>👉 Tap or Click to FLY up.</li>
-                <li>🛑 Avoid the PIPES.</li>
-                <li>⬇️ Don't hit the ground.</li>
-                <li>🏆 Score points by passing pipes.</li>
+            <h3 class="text-xl text-center text-orange-500 mb-4">SURVIVAL GUIDE</h3>
+            <ul class="text-sm space-y-3 font-mono text-gray-300 mb-6 text-left pl-4">
+                <li>🔥 Tap/Click to FLY.</li>
+                <li>🌋 Avoid OBSIDIAN PIPES.</li>
+                <li>☠️ Don't hit the ground.</li>
+                <li>🏆 Rank up in Hell.</li>
             </ul>
-            <button class="close-btn pixel-btn btn-primary w-full py-2">GOT IT</button>
+            <button class="close-btn pixel-btn btn-primary w-full py-2">UNDERSTOOD</button>
         </div>
     </div>
 
     <script>
         /**
-         * BITBOX FLAPVENTURE
-         * Updated: Red/Orange Theme (Magma/Sunset)
+         * BITBOX INFERNO
+         * Theme: Hell/Magma/Pixelated
          */
 
         // --- AUDIO ENGINE ---
@@ -427,38 +423,26 @@
             playCling: function() {
                 if (!this.ctx) return;
                 if (this.ctx.state === 'suspended') this.ctx.resume();
-                const t = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'triangle'; 
-                osc.frequency.setValueAtTime(1200, t); 
-                osc.frequency.exponentialRampToValueAtTime(800, t + 0.4);
-                gain.gain.setValueAtTime(0, t);
-                gain.gain.linearRampToValueAtTime(0.3, t + 0.05);
-                gain.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(t);
-                osc.stop(t + 1.5);
+                this.playTone(200, 'sawtooth', 0.5, 0.2);
             },
 
             playClick: function() {
-                this.playTone(1200, 'triangle', 0.05, 0.05);
+                this.playTone(800, 'square', 0.05, 0.05);
             },
 
             playSound: function(name) {
                 switch(name) {
                     case 'jump':
-                        this.playTone(400, 'square', 0.1, 0.1);
-                        this.playTone(600, 'square', 0.1, 0.1, 0.05);
+                        this.playTone(150, 'sawtooth', 0.1, 0.2);
+                        this.playTone(100, 'square', 0.1, 0.2, 0.05);
                         break;
                     case 'score':
-                        this.playTone(880, 'sine', 0.1, 0.05);
-                        this.playTone(1760, 'sine', 0.2, 0.05, 0.05);
+                        this.playTone(600, 'square', 0.1, 0.05);
+                        this.playTone(1200, 'square', 0.2, 0.05, 0.05);
                         break;
                     case 'crash':
-                        this.playTone(100, 'sawtooth', 0.4, 0.2);
-                        this.playTone(80, 'sawtooth', 0.4, 0.2, 0.1);
+                        this.playTone(100, 'sawtooth', 0.4, 0.3);
+                        this.playTone(50, 'sawtooth', 0.6, 0.3, 0.1);
                         break;
                 }
             },
@@ -470,10 +454,11 @@
                 this.stopMusic();
                 this.currentTrack = track;
 
-                const tempo = track === 'lobby' ? 0.3 : 0.15;
+                // Darker, heavier music for hell theme
+                const tempo = track === 'lobby' ? 0.4 : 0.12;
                 const notes = track === 'lobby' 
-                    ? [330, 392, 494, 587, 494, 392] 
-                    : [262, 262, 392, 392, 440, 440, 392, 0, 349, 349, 330, 330, 294, 294, 262, 0]; 
+                    ? [110, 0, 103, 0, 98, 0, 103, 0] // Low ominous
+                    : [110, 110, 130, 110, 146, 146, 130, 0, 164, 164, 146, 130, 110, 110, 98, 98]; 
 
                 let noteIndex = 0;
                 
@@ -483,9 +468,9 @@
                     if (freq > 0) {
                         const osc = this.ctx.createOscillator();
                         const gain = this.ctx.createGain();
-                        osc.type = track === 'lobby' ? 'sine' : 'square';
+                        osc.type = 'sawtooth'; // Grittier sound
                         osc.frequency.value = freq;
-                        const vol = track === 'lobby' ? 0.05 : 0.03;
+                        const vol = track === 'lobby' ? 0.05 : 0.04;
                         gain.gain.setValueAtTime(vol, this.ctx.currentTime);
                         gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + tempo);
                         osc.connect(gain);
@@ -506,49 +491,130 @@
             }
         };
 
-        // --- GAME SETTINGS & DIFFICULTY ---
+        // --- GAME SETTINGS ---
         const DIFFICULTY_SETTINGS = {
             EASY: {
                 gravity: 0.2,
                 jumpStrength: -4.5,
-                pipeGap: 200,       // Very forgiving gap
-                pipeDistance: 350,  // Far apart
+                pipeGap: 210,       
+                pipeDistance: 350,
                 baseSpeed: 1.5,
-                maxChange: 150      // Gentle slopes
+                maxChange: 150
             },
             NORMAL: {
                 gravity: 0.25,
                 jumpStrength: -5,
-                pipeGap: 160,
+                pipeGap: 170,
                 pipeDistance: 280,
                 baseSpeed: 2.5,
-                maxChange: 250      // Moderate slopes
+                maxChange: 250
             },
             HARD: {
                 gravity: 0.35,
                 jumpStrength: -6,
-                pipeGap: 140,       
+                pipeGap: 150,       
                 pipeDistance: 240,  
                 baseSpeed: 3.5,
-                maxChange: 350      // Steep slopes, but calculated
+                maxChange: 350
             }
         };
 
         const state = {
             screen: 'lobby',
             score: 0,
-            highScore: parseInt(localStorage.getItem('bitbox_highscore')) || 0,
+            highScore: 0, 
             width: window.innerWidth,
             height: window.innerHeight,
             pipes: [],
             particles: [],
             pipeSpeed: 2,
-            playerName: 'BITBOX',
-            difficulty: 'NORMAL'
+            playerName: 'DEMON',
+            difficulty: 'NORMAL',
+            bgOffset: 0
+        };
+
+        // --- BACKGROUND MANAGERS ---
+        const bgManager = {
+            magmaDrops: [],
+            clouds: [],
+            
+            init: function() {
+                this.clouds = [];
+                // Generate ash clouds for seamless parallax
+                for(let i=0; i<10; i++) {
+                    this.clouds.push({
+                        x: Math.random() * state.width,
+                        y: Math.random() * (state.height/2),
+                        w: 100 + Math.random() * 200, 
+                        h: 30 + Math.random() * 50,
+                        speed: 0.5 + Math.random() * 1.0,
+                        opacity: 0.4 + Math.random() * 0.4 
+                    });
+                }
+            },
+
+            update: function() {
+                // Magma Rain Logic
+                if(Math.random() > 0.85) {
+                    this.magmaDrops.push({
+                        x: Math.random() * state.width,
+                        y: -10,
+                        speed: 3 + Math.random() * 5,
+                        len: 5 + Math.random() * 15
+                    });
+                }
+
+                for(let i = this.magmaDrops.length-1; i>=0; i--) {
+                    let d = this.magmaDrops[i];
+                    d.y += d.speed;
+                    if(d.y > state.height) this.magmaDrops.splice(i, 1);
+                }
+
+                // Cloud Scrolling
+                this.clouds.forEach(c => {
+                    c.x -= c.speed;
+                    if(c.x + c.w < 0) c.x = state.width + 50;
+                });
+            },
+
+            draw: function(ctx) {
+                // 1. Deep Magma Sky Gradient
+                const grd = ctx.createLinearGradient(0, 0, 0, state.height);
+                grd.addColorStop(0, "#0f0202"); 
+                grd.addColorStop(0.7, "#3f0a0a"); 
+                grd.addColorStop(1, "#5b1010"); 
+                ctx.fillStyle = grd;
+                ctx.fillRect(0,0, state.width, state.height);
+
+                // 2. Ash Clouds (Pixelated Drawing Style)
+                const P = 4; // Pixel Unit
+                this.clouds.forEach(c => {
+                    ctx.fillStyle = `rgba(168, 162, 158, ${c.opacity})`; 
+                    
+                    const x = Math.floor(c.x / P) * P;
+                    const y = Math.floor(c.y / P) * P;
+                    const w = Math.floor(c.w / P) * P;
+                    const h = Math.floor(c.h / P) * P;
+
+                    // Draw cloud as stacked blocks
+                    ctx.fillRect(x, y + h/2, w, h/2);
+                    ctx.fillRect(x + w/4, y, w/2, h/2);
+                });
+
+                // 3. Magma Rain (Pixelated)
+                ctx.fillStyle = "#ea580c";
+                const P_DROP = 4;
+                this.magmaDrops.forEach(d => {
+                    const dx = Math.floor(d.x / P_DROP) * P_DROP;
+                    const dy = Math.floor(d.y / P_DROP) * P_DROP;
+                    const dl = Math.floor(d.len / P_DROP) * P_DROP;
+                    ctx.fillRect(dx, dy, P_DROP, dl);
+                });
+            }
         };
 
         const player = {
-            x: 50, y: 0, width: 30, height: 30, velocity: 0, rotation: 0,
+            x: 50, y: 0, width: 34, height: 34, velocity: 0, rotation: 0,
             update: function() {
                 const settings = DIFFICULTY_SETTINGS[state.difficulty];
                 this.velocity += settings.gravity;
@@ -567,25 +633,35 @@
                 createParticles(this.x, this.y + this.height, 5);
             },
             draw: function(ctx) {
-                // Draw Name Tag
-                ctx.fillStyle = '#fff';
+                // Name
+                ctx.fillStyle = '#f97316';
                 ctx.font = '10px "Press Start 2P"';
                 ctx.textAlign = 'center';
-                ctx.fillText(state.playerName, this.x + this.width/2, this.y - 10);
+                ctx.fillText(state.playerName, Math.floor(this.x + this.width/2), Math.floor(this.y - 12));
 
                 ctx.save();
-                ctx.translate(this.x + this.width/2, this.y + this.height/2);
+                ctx.translate(Math.floor(this.x + this.width/2), Math.floor(this.y + this.height/2));
                 ctx.rotate(this.rotation);
-                const s = this.width;
-                ctx.fillStyle = '#ec4899'; ctx.fillRect(-s/2, -s/2, s, s);
-                ctx.fillStyle = '#fbcfe8'; ctx.fillRect(-s/2 + 4, -s/2 + 4, s-8, s-8);
-                ctx.fillStyle = '#333'; ctx.fillRect(-s/4, -s/6, s/2, s/3);
-                ctx.fillStyle = '#0f0'; ctx.fillRect(-s/6, -s/8, 4, 4); ctx.fillRect(2, -s/8, 4, 4);
                 
-                // Wing
-                ctx.fillStyle = '#fff'; 
-                const wingOffset = Math.sin(Date.now() / 100) * 5;
-                ctx.fillRect(-s/2 - 5, -5 + wingOffset, 5, 10);
+                const s = this.width;
+                
+                // --- CHARACTER: OBSIDIAN GOLEM ---
+                // Body
+                ctx.fillStyle = '#292524'; // Stone-800
+                ctx.fillRect(-s/2, -s/2, s, s);
+                
+                // Border
+                ctx.strokeStyle = '#fdba74'; 
+                ctx.lineWidth = 2;
+                ctx.strokeRect(-s/2, -s/2, s, s);
+
+                // Lava Crack
+                ctx.fillStyle = '#ef4444'; // Red-500
+                ctx.fillRect(-s/4, -s/4, s/2, s/2);
+                
+                // Eye 
+                ctx.fillStyle = '#fef08a'; // Yellow-200
+                ctx.fillRect(2, -8, 8, 8);
                 
                 ctx.restore();
             }
@@ -596,8 +672,9 @@
             for(let i=0; i<count; i++) {
                 state.particles.push({
                     x: x, y: y,
-                    vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2,
-                    life: 1.0, color: Math.random() > 0.5 ? '#fde047' : '#f97316'
+                    vx: (Math.random() - 0.5) * 4, vy: (Math.random() - 0.5) * 4,
+                    life: 1.0, 
+                    color: Math.random() > 0.5 ? '#ef4444' : '#f97316'
                 });
             }
         }
@@ -605,21 +682,21 @@
         function updateParticles() {
             for(let i = state.particles.length - 1; i >= 0; i--) {
                 const p = state.particles[i];
-                p.x += p.vx; p.y += p.vy; p.life -= 0.05;
+                p.x += p.vx; p.y += p.vy; p.life -= 0.04;
                 if(p.life <= 0) state.particles.splice(i, 1);
             }
         }
 
         function drawParticles(ctx) {
             state.particles.forEach(p => {
-                ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 4, 4);
+                ctx.globalAlpha = p.life; ctx.fillStyle = p.color; 
+                ctx.fillRect(Math.floor(p.x), Math.floor(p.y), 4, 4); 
             });
             ctx.globalAlpha = 1.0;
         }
 
         function updatePipes() {
             const settings = DIFFICULTY_SETTINGS[state.difficulty];
-
             let spawnNeeded = false;
             
             if (state.pipes.length === 0) {
@@ -634,8 +711,6 @@
             if (spawnNeeded) {
                 const minHeight = 50;
                 const availableHeight = state.height - settings.pipeGap - (minHeight * 2);
-                
-                // --- INTELLIGENT PIPE GENERATION ---
                 let topHeight;
 
                 if (state.pipes.length === 0) {
@@ -654,10 +729,11 @@
                 const pipe = state.pipes[i];
                 pipe.x -= state.pipeSpeed;
 
-                if (pipe.x + 60 < 0) { state.pipes.splice(i, 1); continue; }
+                const pipeW = 60; 
+
+                if (pipe.x + pipeW < 0) { state.pipes.splice(i, 1); continue; }
 
                 // Collision
-                const pipeW = 60;
                 const pL = player.x + 4, pR = player.x + player.width - 4, pT = player.y + 4, pB = player.y + player.height - 4;
                 
                 if (pL < pipe.x + pipeW && pR > pipe.x && (pT < pipe.topHeight || pB > pipe.topHeight + settings.pipeGap)) {
@@ -669,32 +745,41 @@
                     state.score++;
                     document.getElementById('currentScore').innerText = state.score;
                     audioManager.playSound('score');
-                    if(state.score % 10 === 0) state.pipeSpeed += 0.2;
+                    if(state.score % 5 === 0) state.pipeSpeed += 0.1; 
                 }
             }
         }
 
         function drawPipes(ctx) {
             const settings = DIFFICULTY_SETTINGS[state.difficulty];
-            const w = 60;
+            const w = 60; 
             state.pipes.forEach(pipe => {
-                // THEME: Magma/Industrial
-                const mainColor = '#f97316'; // Orange-500
-                const shadowColor = '#9a3412'; // Orange-800
-                const highlightColor = '#fde047'; // Yellow-300
+                const stoneDark = '#1c1917'; 
+                const stoneLight = '#44403c'; 
+                const lava = '#ea580c';
+                const px = Math.floor(pipe.x);
+                const th = Math.floor(pipe.topHeight);
+                const by = Math.floor(th + settings.pipeGap);
 
-                ctx.fillStyle = shadowColor; 
-                ctx.fillRect(Math.floor(pipe.x), 0, w, pipe.topHeight); // Top
-                ctx.fillStyle = mainColor; ctx.fillRect(Math.floor(pipe.x) - 2, pipe.topHeight - 20, w + 4, 20); // Cap
-                
-                const bottomY = pipe.topHeight + settings.pipeGap;
-                ctx.fillStyle = shadowColor; ctx.fillRect(Math.floor(pipe.x), bottomY, w, state.height - bottomY); // Bottom
-                ctx.fillStyle = mainColor; ctx.fillRect(Math.floor(pipe.x) - 2, bottomY, w + 4, 20); // Cap
-                
-                // Highlights
-                ctx.fillStyle = highlightColor; 
-                ctx.fillRect(Math.floor(pipe.x) + 5, 0, 4, pipe.topHeight - 20);
-                ctx.fillRect(Math.floor(pipe.x) + 5, bottomY + 20, 4, state.height);
+                // Top Pipe
+                ctx.fillStyle = stoneDark; 
+                ctx.fillRect(px, 0, w, th);
+                // Lava Stripe inside
+                ctx.fillStyle = lava;
+                ctx.fillRect(px + 10, 0, 10, th-10);
+                // Cap
+                ctx.fillStyle = stoneLight; 
+                ctx.fillRect(px - 4, th - 20, w + 8, 20); 
+
+                // Bottom Pipe
+                ctx.fillStyle = stoneDark; 
+                ctx.fillRect(px, by, w, state.height - by);
+                // Lava Stripe inside
+                ctx.fillStyle = lava;
+                ctx.fillRect(px + 10, by + 10, 10, state.height);
+                // Cap
+                ctx.fillStyle = stoneLight; 
+                ctx.fillRect(px - 4, by, w + 8, 20); 
             });
         }
 
@@ -705,6 +790,8 @@
         function loop() {
             if (state.screen === 'playing') {
                 ctx.clearRect(0, 0, state.width, state.height);
+                bgManager.update();
+                bgManager.draw(ctx);
                 updatePipes();
                 player.update();
                 updateParticles();
@@ -712,7 +799,8 @@
                 player.draw(ctx);
                 drawParticles(ctx);
             } else if (state.screen === 'lobby' || state.screen === 'paused') {
-                if(state.screen === 'lobby') ctx.clearRect(0, 0, state.width, state.height);
+                bgManager.update();
+                bgManager.draw(ctx);
             }
             requestAnimationFrame(loop);
         }
@@ -734,7 +822,7 @@
             player.y = state.height / 2;
             player.velocity = 0;
 
-            state.playerName = document.getElementById('playerName').value.trim().toUpperCase() || 'BITBOX';
+            state.playerName = document.getElementById('playerName').value.trim().toUpperCase() || 'DEMON';
 
             document.getElementById('currentScore').innerText = '0';
             toggleUI('game');
@@ -747,8 +835,9 @@
             
             if (state.score > state.highScore) {
                 state.highScore = state.score;
-                localStorage.setItem('bitbox_highscore', state.highScore);
+                localStorage.setItem('bitbox_inferno_highscore', state.highScore);
             }
+            
             saveToLeaderboard(state.playerName, state.score, state.difficulty);
 
             document.getElementById('finalScore').innerText = state.score;
@@ -795,15 +884,22 @@
         // --- INITIALIZATION & EVENTS ---
         
         function resize() {
+            // Restore High Resolution
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             state.width = canvas.width;
             state.height = canvas.height;
+            
             ctx.imageSmoothingEnabled = false; 
+            bgManager.init();
         }
 
         window.onload = function() {
             resize();
+            
+            state.highScore = parseInt(localStorage.getItem('bitbox_inferno_highscore')) || 0;
+            document.getElementById('highScoreDisplay').innerText = `BEST: ${state.highScore}`;
+
             const splash = document.getElementById('splash-screen');
             const prompt = document.getElementById('start-prompt');
             const sysHeader = document.getElementById('sys-header');
@@ -826,7 +922,7 @@
             document.querySelectorAll('.close-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     audioManager.playClick();
-                    document.querySelectorAll('.modal-overlay:not(#pauseMenu):not(#gameOver)').forEach(m => m.classList.add('hidden'));
+                    document.querySelectorAll('.modal-overlay:not(#pauseMenu):not(#gameOver):not(#wipeModal)').forEach(m => m.classList.add('hidden'));
                 });
             });
 
@@ -863,6 +959,24 @@
             document.getElementById('resumeBtn').addEventListener('click', togglePause);
             document.getElementById('pauseBtn').addEventListener('click', togglePause);
             
+            // --- CUSTOM WIPE MODAL LOGIC ---
+            document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+                audioManager.playClick();
+                document.getElementById('wipeModal').classList.remove('hidden');
+            });
+
+            document.getElementById('confirmWipeBtn').addEventListener('click', () => {
+                audioManager.playCling();
+                localStorage.removeItem('bitbox_inferno_leaderboard');
+                renderLeaderboard();
+                document.getElementById('wipeModal').classList.add('hidden');
+            });
+
+            document.getElementById('cancelWipeBtn').addEventListener('click', () => {
+                audioManager.playClick();
+                document.getElementById('wipeModal').classList.add('hidden');
+            });
+
             ['homeBtn', 'pauseHomeBtn'].forEach(id => {
                 document.getElementById(id).addEventListener('click', () => {
                     audioManager.playClick();
@@ -893,7 +1007,6 @@
                 if(state.screen === 'playing' && !e.target.closest('button')) player.flap();
             });
 
-            document.getElementById('highScoreDisplay').innerText = `BEST: ${state.highScore}`;
             requestAnimationFrame(loop);
         };
 
@@ -911,27 +1024,32 @@
         }
 
         function saveToLeaderboard(name, score, diff) {
-            let scores = JSON.parse(localStorage.getItem('bitbox_leaderboard') || '[]');
+            let scores = JSON.parse(localStorage.getItem('bitbox_inferno_leaderboard') || '[]');
             scores.push({ name, score, diff, date: new Date().toLocaleDateString() });
             scores.sort((a, b) => b.score - a.score);
-            scores = scores.slice(0, 10);
-            localStorage.setItem('bitbox_leaderboard', JSON.stringify(scores));
+            scores = scores.slice(0, 50);
+            localStorage.setItem('bitbox_inferno_leaderboard', JSON.stringify(scores));
         }
 
         function renderLeaderboard() {
             const list = document.getElementById('scoresList');
-            const scores = JSON.parse(localStorage.getItem('bitbox_leaderboard') || '[]');
+            const scores = JSON.parse(localStorage.getItem('bitbox_inferno_leaderboard') || '[]');
+            
             if (scores.length === 0) {
-                list.innerHTML = '<div class="text-center text-orange-400 mt-10">NO SCORES YET</div>';
+                list.innerHTML = '<div class="text-center text-orange-700 mt-10">NO SOULS YET</div>';
                 return;
             }
+            
             list.innerHTML = scores.map((entry, i) => `
-                <div class="flex justify-between items-center bg-orange-200/50 p-2 rounded mb-1">
-                    <div class="flex flex-col text-left">
-                        <span class="font-bold text-orange-900 text-xs">${entry.name || 'BITBOX'}</span>
-                        <span class="text-[10px] text-orange-700">${entry.date} [${entry.diff || 'AVG'}]</span>
+                <div class="flex justify-between items-center bg-stone-800 p-2 border-b border-orange-900/30">
+                    <div class="flex items-center gap-3">
+                        <span class="text-orange-600 font-bold w-4">${i+1}.</span>
+                        <div class="flex flex-col text-left">
+                            <span class="font-bold text-orange-400 text-xs">${entry.name || 'DEMON'}</span>
+                            <span class="text-[10px] text-gray-500">${entry.date} [${entry.diff || 'AVG'}]</span>
+                        </div>
                     </div>
-                    <span class="font-bold text-orange-700 text-lg">${entry.score}</span>
+                    <span class="font-bold text-white text-lg">${entry.score}</span>
                 </div>
             `).join('');
         }
