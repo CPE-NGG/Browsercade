@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bitbox Flapventure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-pink: #ec4899;
+            --lava-orange: #ea580c;
+            --magma-red: #7f1d1d;
+            --flare-yellow: #facc15;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden;
+            touch-action: none;
+            background-color: #450a0a;
+            
+            /* High Contrast RED/ORANGE/MAROON Background */
+            background-image: repeating-linear-gradient(
+                -45deg,
+                #450a0a,                 /* Red 950 (Dark Maroon) */
+                #450a0a 40px,
+                #7f1d1d 40px,            /* Red 900 (Brick Red) */
+                #7f1d1d 80px
+            );
+            background-size: 200% 200%;
+            animation: bgFlow 15s linear infinite;
+        }
+
+        @keyframes bgFlow {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 100% 100%; }
+        }
+        
+        /* --- BRAND HEADER --- */
+        .brand-header {
+            position: absolute;
+            top: 8%; 
+            width: 100%;
+            text-align: center;
+            pointer-events: none;
+            z-index: 5;
+            animation: float 3s ease-in-out infinite;
+            opacity: 0; 
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .brand-header.visible { opacity: 1; }
+
+        .brand-text {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.5rem;
+            color: #fff;
+            text-shadow: 4px 4px 0px #ea580c; /* Orange Shadow */
+            letter-spacing: 4px;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* --- SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 2.5s ease-in-out;
+            cursor: pointer;
+        }
+        #splash-screen.fade-out { opacity: 0; pointer-events: none; }
+        
+        #splash-screen video { 
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100dvh; 
+            object-fit: cover; 
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .vid-landscape { display: block; }
+        .vid-portrait { display: none; }
+
+        @media (orientation: portrait) {
+            .vid-landscape { display: none; }
+            .vid-portrait { display: block; }
+        }
+
+        #start-prompt {
+            position: absolute; bottom: 20%; font-family: 'Press Start 2P', cursive;
+            color: #facc15; /* Yellow prompt */
+            font-size: 1rem; animation: blink 0.8s infinite;
+            text-transform: uppercase; text-shadow: 2px 2px 0px #000; pointer-events: none;
+            z-index: 10; 
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* --- BUTTON STYLES --- */
+        .pixel-btn {
+            box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.5);
+            transition: all 0.1s;
+            text-transform: uppercase;
+            image-rendering: pixelated;
+            border: 2px solid white;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        /* Hover Effect for ALL buttons */
+        .pixel-btn:hover, .control-btn:hover, .diff-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.15); /* Make brighter on hover */
+        }
+
+        .pixel-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px 0px rgba(0,0,0,0.5);
+        }
+
+        /* Button Variants (Warm Theme) */
+        .btn-primary { background-color: #ea580c; color: white; border-color: #9a3412; } /* Orange */
+        .btn-secondary { background-color: #be123c; color: white; border-color: #881337; } /* Rose/Red */
+        .btn-accent { background-color: #d97706; color: white; border-color: #b45309; } /* Amber */
+        .btn-danger { background-color: #991b1b; color: white; border-color: #7f1d1d; } /* Dark Red */
+
+        /* Top Controls */
+        .top-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 60;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            background: #fff;
+            border: 2px solid #ea580c;
+            color: #ea580c;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 4px 4px 0 #9a3412;
+            transition: all 0.2s;
+        }
+        .control-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #9a3412; }
+
+        /* Difficulty Buttons */
+        .diff-btn {
+            padding: 8px;
+            font-size: 0.6rem;
+            border: 2px solid #fff;
+            cursor: pointer;
+            background: #7f1d1d; /* Dark Red */
+            color: #fff;
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.3);
+            transition: all 0.2s;
+        }
+        .diff-btn.active {
+            background: #f97316; /* Bright Orange */
+            color: white;
+            box-shadow: inset 2px 2px 0 rgba(0,0,0,0.2);
+            border-color: #c2410c;
+        }
+
+        /* Modals */
+        .modal-overlay {
+            background: rgba(40, 10, 10, 0.9); /* Dark Red Tint */
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-box {
+            background: #fff;
+            border: 4px solid #ea580c;
+            box-shadow: 8px 8px 0 rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        /* Toggle Switch */
+        .pixel-toggle {
+            width: 50px; height: 26px; border: 3px solid #fff; background: #450a0a;
+            position: relative; cursor: pointer; display: inline-block;
+        }
+        .pixel-toggle::after {
+            content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px;
+            background: #aaa; transition: left 0.1s steps(2);
+        }
+        .pixel-toggle.on { background: #ea580c; }
+        .pixel-toggle.on::after { left: 27px; background: #fff; }
+
+        /* Input Field */
+        .pixel-input {
+            font-family: 'Press Start 2P', cursive;
+            background: #fff;
+            border: 4px solid #ea580c;
+            color: #9a3412;
+            outline: none;
+            box-shadow: inset 4px 4px 0px rgba(0,0,0,0.1);
+        }
+        .pixel-input::placeholder { color: #fdba74; }
+
+        /* Canvas */
+        canvas { 
+            display: block; 
+            width: 100%; 
+            height: 100%;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        .hidden { display: none !important; }
+        
+        #lobby { opacity: 0; pointer-events: none; }
+        #lobby.visible { opacity: 1; pointer-events: auto; }
+    </style>
+</head>
+<body class="text-orange-900 select-none">
+
+    <div class="brand-header" id="sys-header">
+        <div class="brand-text">BROWSERCADE</div>
+    </div>
+
+    <div id="splash-screen">
+        <video id="vid-ls" class="vid-landscape" autoplay muted loop playsinline>
+            <source src="../assets/BrowsercadeLS.mp4" type="video/mp4">
+        </video>
+        <video id="vid-pr" class="vid-portrait" autoplay muted loop playsinline>
+            <source src="../assets/BrowsercadePR.mp4" type="video/mp4">
+        </video>
+        <div id="start-prompt">TAP TO START</div>
+    </div>
+
+    <canvas id="gameCanvas" class="absolute top-0 left-0 w-full h-full z-10"></canvas>
+
+    <div id="lobbyControls" class="top-controls transition-opacity duration-300">
+        <button class="control-btn" onclick="window.location.href='../index.html'" title="Return to Hub">🏠</button>
+        <button class="control-btn" id="lobbyLeaderboardBtn" title="Leaderboard">🏆</button>
+        <button class="control-btn" id="lobbyRulesBtn" title="Rules">📜</button>
+        <button class="control-btn" id="lobbySettingsBtn" title="Settings">⚙️</button>
+    </div>
+
+    <div id="gameControls" class="top-controls hidden">
+        <button class="control-btn" id="pauseBtn" title="Pause">⏸️</button>
+    </div>
+
+    <div id="lobby" class="absolute inset-0 z-30 flex flex-col items-center justify-center transition-all duration-300">
+        <h1 class="text-4xl md:text-6xl text-white mb-2 text-center drop-shadow-[4px_4px_0_#9a3412] leading-normal mt-12">
+            BITBOX<br><span class="text-orange-400 text-2xl md:text-4xl">FLAPVENTURE</span>
+        </h1>
+        
+        <div class="modal-box p-6 max-w-md w-11/12 mx-auto mt-4">
+            <div class="mb-4">
+                <label for="playerName" class="block text-xs text-orange-800 mb-2">PILOT NAME</label>
+                <input type="text" id="playerName" class="pixel-input w-full p-2 text-center text-sm" placeholder="ENTER NAME" maxlength="8">
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-xs text-orange-800 mb-2">DIFFICULTY</label>
+                <div class="flex justify-center gap-2">
+                    <button class="diff-btn" data-mode="EASY">EASY</button>
+                    <button class="diff-btn active" data-mode="NORMAL">AVG</button>
+                    <button class="diff-btn" data-mode="HARD">HARD</button>
+                </div>
+            </div>
+            
+            <button id="startBtn" class="pixel-btn btn-primary w-full font-bold py-4 px-6 mb-2">
+                START FLIGHT
+            </button>
+        </div>
+    </div>
+
+    <div id="gameUI" class="hidden absolute top-0 left-0 w-full p-4 z-20 flex flex-col items-start pointer-events-none">
+        <div class="text-white text-4xl drop-shadow-[4px_4px_0_#000]" id="currentScore">0</div>
+        <div id="highScoreDisplay" class="text-orange-200 text-sm drop-shadow-[2px_2px_0_#000] mt-1">BEST: 0</div>
+    </div>
+
+    <div id="pauseMenu" class="hidden absolute inset-0 z-50 modal-overlay flex flex-col items-center justify-center">
+        <div class="modal-box p-8 w-72 flex flex-col items-center">
+            <h2 class="text-2xl text-orange-600 mb-6 border-b-4 border-orange-200 w-full pb-2">PAUSED</h2>
+            <div class="flex flex-col gap-4 w-full">
+                <button id="resumeBtn" class="pixel-btn btn-primary py-3">RESUME</button>
+                <button id="pauseSettingsBtn" class="pixel-btn btn-accent py-3">SETTINGS</button>
+                <button id="pauseRestartBtn" class="pixel-btn btn-secondary py-3">RESTART</button>
+                <button id="pauseHomeBtn" class="pixel-btn btn-danger py-3">QUIT TO LOBBY</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="gameOver" class="hidden absolute inset-0 z-40 flex flex-col items-center justify-center modal-overlay">
+        <h2 class="text-5xl text-orange-500 mb-4 drop-shadow-[4px_4px_0_#fff]">CRASHED!</h2>
+        <div class="modal-box p-6 w-80">
+            <p class="text-gray-600 text-sm mb-2">SCORE</p>
+            <p id="finalScore" class="text-4xl mb-4 text-orange-600">0</p>
+            <p class="text-gray-600 text-sm mb-2">BEST</p>
+            <p id="finalBest" class="text-2xl mb-6 text-orange-400">0</p>
+            
+            <div class="flex flex-col gap-3">
+                <button id="restartBtn" class="pixel-btn btn-primary py-3 px-8">
+                    TRY AGAIN
+                </button>
+                <button id="homeBtn" class="pixel-btn btn-secondary py-2 text-xs">
+                    RETURN TO LOBBY
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="leaderboardModal" class="hidden absolute inset-0 z-50 flex items-center justify-center modal-overlay">
+        <div class="bg-orange-100 p-6 border-4 border-orange-600 w-11/12 max-w-md h-3/4 flex flex-col relative shadow-[8px_8px_0_rgba(0,0,0,0.5)]">
+            <button class="close-btn absolute top-2 right-2 text-orange-800 text-xl hover:text-orange-600 font-bold">X</button>
+            <h3 class="text-xl text-center text-orange-800 mb-4 border-b-4 border-orange-300 pb-2">TOP SCORES</h3>
+            <div id="scoresList" class="flex-1 overflow-y-auto space-y-2 text-sm font-mono p-2">
+                </div>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="hidden absolute inset-0 z-50 flex items-center justify-center modal-overlay">
+        <div class="bg-red-900 p-8 border-4 border-white w-80 text-white text-center shadow-[8px_8px_0_rgba(0,0,0,0.5)]">
+            <h3 class="text-2xl mb-6">SETTINGS</h3>
+            
+            <div class="flex justify-between items-center mb-6">
+                <span>MUSIC</span>
+                <div id="bgmToggle" class="pixel-toggle on"></div>
+            </div>
+            
+            <div class="flex justify-between items-center mb-8">
+                <span>SOUND FX</span>
+                <div id="sfxToggle" class="pixel-toggle on"></div>
+            </div>
+
+            <button class="close-btn pixel-btn bg-white text-red-900 py-2 px-6 border-2 border-gray-400">CLOSE</button>
+        </div>
+    </div>
+
+    <div id="rulesModal" class="hidden absolute inset-0 z-50 flex items-center justify-center modal-overlay">
+        <div class="modal-box p-6 w-11/12 max-w-md">
+            <h3 class="text-xl text-center text-orange-600 mb-4">HOW TO PLAY</h3>
+            <ul class="text-sm space-y-3 font-mono text-gray-700 mb-6">
+                <li>👉 Tap or Click to FLY up.</li>
+                <li>🛑 Avoid the PIPES.</li>
+                <li>⬇️ Don't hit the ground.</li>
+                <li>🏆 Score points by passing pipes.</li>
+            </ul>
+            <button class="close-btn pixel-btn btn-primary w-full py-2">GOT IT</button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * BITBOX FLAPVENTURE
+         * Updated: Red/Orange Theme (Magma/Sunset)
+         */
+
+        // --- AUDIO ENGINE ---
+        const audioManager = {
+            ctx: null,
+            bgmNode: null,
+            bgmGain: null,
+            bgmInterval: null,
+            isBGM: true,
+            isSFX: true,
+            currentTrack: null,
+
+            init: function() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+
+            toggleBGM: function() {
+                this.isBGM = !this.isBGM;
+                document.getElementById('bgmToggle').className = this.isBGM ? 'pixel-toggle on' : 'pixel-toggle';
+                
+                if (this.isBGM) {
+                    if (state.screen === 'playing') this.playMusic('game');
+                    else this.playMusic('lobby');
+                } else {
+                    this.stopMusic();
+                }
+            },
+
+            toggleSFX: function() {
+                this.isSFX = !this.isSFX;
+                document.getElementById('sfxToggle').className = this.isSFX ? 'pixel-toggle on' : 'pixel-toggle';
+                if(this.isSFX) this.playTone(600, 'square', 0.1);
+            },
+
+            playTone: function(freq, type, duration, vol = 0.1, timeOff = 0) {
+                if (!this.ctx || !this.isSFX) return;
+                const t = this.ctx.currentTime + timeOff;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, t);
+                gain.gain.setValueAtTime(vol, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + duration);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(t);
+                osc.stop(t + duration);
+            },
+
+            playCling: function() {
+                if (!this.ctx) return;
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle'; 
+                osc.frequency.setValueAtTime(1200, t); 
+                osc.frequency.exponentialRampToValueAtTime(800, t + 0.4);
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.3, t + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(t);
+                osc.stop(t + 1.5);
+            },
+
+            playClick: function() {
+                this.playTone(1200, 'triangle', 0.05, 0.05);
+            },
+
+            playSound: function(name) {
+                switch(name) {
+                    case 'jump':
+                        this.playTone(400, 'square', 0.1, 0.1);
+                        this.playTone(600, 'square', 0.1, 0.1, 0.05);
+                        break;
+                    case 'score':
+                        this.playTone(880, 'sine', 0.1, 0.05);
+                        this.playTone(1760, 'sine', 0.2, 0.05, 0.05);
+                        break;
+                    case 'crash':
+                        this.playTone(100, 'sawtooth', 0.4, 0.2);
+                        this.playTone(80, 'sawtooth', 0.4, 0.2, 0.1);
+                        break;
+                }
+            },
+
+            playMusic: function(track) {
+                if (!this.ctx || !this.isBGM) return;
+                if (this.currentTrack === track && this.bgmInterval) return;
+                
+                this.stopMusic();
+                this.currentTrack = track;
+
+                const tempo = track === 'lobby' ? 0.3 : 0.15;
+                const notes = track === 'lobby' 
+                    ? [330, 392, 494, 587, 494, 392] 
+                    : [262, 262, 392, 392, 440, 440, 392, 0, 349, 349, 330, 330, 294, 294, 262, 0]; 
+
+                let noteIndex = 0;
+                
+                this.bgmInterval = setInterval(() => {
+                    if (!this.isBGM) { this.stopMusic(); return; }
+                    const freq = notes[noteIndex];
+                    if (freq > 0) {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = track === 'lobby' ? 'sine' : 'square';
+                        osc.frequency.value = freq;
+                        const vol = track === 'lobby' ? 0.05 : 0.03;
+                        gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + tempo);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start();
+                        osc.stop(this.ctx.currentTime + tempo);
+                    }
+                    noteIndex = (noteIndex + 1) % notes.length;
+                }, tempo * 1000);
+            },
+
+            stopMusic: function() {
+                if (this.bgmInterval) {
+                    clearInterval(this.bgmInterval);
+                    this.bgmInterval = null;
+                }
+                this.currentTrack = null;
+            }
+        };
+
+        // --- GAME SETTINGS & DIFFICULTY ---
+        const DIFFICULTY_SETTINGS = {
+            EASY: {
+                gravity: 0.2,
+                jumpStrength: -4.5,
+                pipeGap: 200,       // Very forgiving gap
+                pipeDistance: 350,  // Far apart
+                baseSpeed: 1.5,
+                maxChange: 150      // Gentle slopes
+            },
+            NORMAL: {
+                gravity: 0.25,
+                jumpStrength: -5,
+                pipeGap: 160,
+                pipeDistance: 280,
+                baseSpeed: 2.5,
+                maxChange: 250      // Moderate slopes
+            },
+            HARD: {
+                gravity: 0.35,
+                jumpStrength: -6,
+                pipeGap: 140,       
+                pipeDistance: 240,  
+                baseSpeed: 3.5,
+                maxChange: 350      // Steep slopes, but calculated
+            }
+        };
+
+        const state = {
+            screen: 'lobby',
+            score: 0,
+            highScore: parseInt(localStorage.getItem('bitbox_highscore')) || 0,
+            width: window.innerWidth,
+            height: window.innerHeight,
+            pipes: [],
+            particles: [],
+            pipeSpeed: 2,
+            playerName: 'BITBOX',
+            difficulty: 'NORMAL'
+        };
+
+        const player = {
+            x: 50, y: 0, width: 30, height: 30, velocity: 0, rotation: 0,
+            update: function() {
+                const settings = DIFFICULTY_SETTINGS[state.difficulty];
+                this.velocity += settings.gravity;
+                this.y += this.velocity;
+                this.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, (this.velocity * 0.1)));
+                if (this.y + this.height >= state.height) {
+                    this.y = state.height - this.height;
+                    endGame();
+                }
+                if (this.y < 0) { this.y = 0; this.velocity = 0; }
+            },
+            flap: function() {
+                const settings = DIFFICULTY_SETTINGS[state.difficulty];
+                this.velocity = settings.jumpStrength;
+                audioManager.playSound('jump');
+                createParticles(this.x, this.y + this.height, 5);
+            },
+            draw: function(ctx) {
+                // Draw Name Tag
+                ctx.fillStyle = '#fff';
+                ctx.font = '10px "Press Start 2P"';
+                ctx.textAlign = 'center';
+                ctx.fillText(state.playerName, this.x + this.width/2, this.y - 10);
+
+                ctx.save();
+                ctx.translate(this.x + this.width/2, this.y + this.height/2);
+                ctx.rotate(this.rotation);
+                const s = this.width;
+                ctx.fillStyle = '#ec4899'; ctx.fillRect(-s/2, -s/2, s, s);
+                ctx.fillStyle = '#fbcfe8'; ctx.fillRect(-s/2 + 4, -s/2 + 4, s-8, s-8);
+                ctx.fillStyle = '#333'; ctx.fillRect(-s/4, -s/6, s/2, s/3);
+                ctx.fillStyle = '#0f0'; ctx.fillRect(-s/6, -s/8, 4, 4); ctx.fillRect(2, -s/8, 4, 4);
+                
+                // Wing
+                ctx.fillStyle = '#fff'; 
+                const wingOffset = Math.sin(Date.now() / 100) * 5;
+                ctx.fillRect(-s/2 - 5, -5 + wingOffset, 5, 10);
+                
+                ctx.restore();
+            }
+        };
+
+        // --- PARTICLES & PIPES ---
+        function createParticles(x, y, count) {
+            for(let i=0; i<count; i++) {
+                state.particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2,
+                    life: 1.0, color: Math.random() > 0.5 ? '#fde047' : '#f97316'
+                });
+            }
+        }
+
+        function updateParticles() {
+            for(let i = state.particles.length - 1; i >= 0; i--) {
+                const p = state.particles[i];
+                p.x += p.vx; p.y += p.vy; p.life -= 0.05;
+                if(p.life <= 0) state.particles.splice(i, 1);
+            }
+        }
+
+        function drawParticles(ctx) {
+            state.particles.forEach(p => {
+                ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 4, 4);
+            });
+            ctx.globalAlpha = 1.0;
+        }
+
+        function updatePipes() {
+            const settings = DIFFICULTY_SETTINGS[state.difficulty];
+
+            let spawnNeeded = false;
+            
+            if (state.pipes.length === 0) {
+                spawnNeeded = true;
+            } else {
+                const lastPipe = state.pipes[state.pipes.length - 1];
+                if (state.width - lastPipe.x >= settings.pipeDistance) {
+                    spawnNeeded = true;
+                }
+            }
+
+            if (spawnNeeded) {
+                const minHeight = 50;
+                const availableHeight = state.height - settings.pipeGap - (minHeight * 2);
+                
+                // --- INTELLIGENT PIPE GENERATION ---
+                let topHeight;
+
+                if (state.pipes.length === 0) {
+                    topHeight = availableHeight / 2 + minHeight;
+                } else {
+                    const lastHeight = state.pipes[state.pipes.length - 1].topHeight;
+                    const minSafe = Math.max(minHeight, lastHeight - settings.maxChange);
+                    const maxSafe = Math.min(availableHeight + minHeight, lastHeight + settings.maxChange);
+                    topHeight = Math.floor(Math.random() * (maxSafe - minSafe + 1)) + minSafe;
+                }
+                
+                state.pipes.push({ x: state.width, topHeight: topHeight, passed: false });
+            }
+
+            for (let i = state.pipes.length - 1; i >= 0; i--) {
+                const pipe = state.pipes[i];
+                pipe.x -= state.pipeSpeed;
+
+                if (pipe.x + 60 < 0) { state.pipes.splice(i, 1); continue; }
+
+                // Collision
+                const pipeW = 60;
+                const pL = player.x + 4, pR = player.x + player.width - 4, pT = player.y + 4, pB = player.y + player.height - 4;
+                
+                if (pL < pipe.x + pipeW && pR > pipe.x && (pT < pipe.topHeight || pB > pipe.topHeight + settings.pipeGap)) {
+                    endGame();
+                }
+
+                if (!pipe.passed && player.x > pipe.x + pipeW) {
+                    pipe.passed = true;
+                    state.score++;
+                    document.getElementById('currentScore').innerText = state.score;
+                    audioManager.playSound('score');
+                    if(state.score % 10 === 0) state.pipeSpeed += 0.2;
+                }
+            }
+        }
+
+        function drawPipes(ctx) {
+            const settings = DIFFICULTY_SETTINGS[state.difficulty];
+            const w = 60;
+            state.pipes.forEach(pipe => {
+                // THEME: Magma/Industrial
+                const mainColor = '#f97316'; // Orange-500
+                const shadowColor = '#9a3412'; // Orange-800
+                const highlightColor = '#fde047'; // Yellow-300
+
+                ctx.fillStyle = shadowColor; 
+                ctx.fillRect(Math.floor(pipe.x), 0, w, pipe.topHeight); // Top
+                ctx.fillStyle = mainColor; ctx.fillRect(Math.floor(pipe.x) - 2, pipe.topHeight - 20, w + 4, 20); // Cap
+                
+                const bottomY = pipe.topHeight + settings.pipeGap;
+                ctx.fillStyle = shadowColor; ctx.fillRect(Math.floor(pipe.x), bottomY, w, state.height - bottomY); // Bottom
+                ctx.fillStyle = mainColor; ctx.fillRect(Math.floor(pipe.x) - 2, bottomY, w + 4, 20); // Cap
+                
+                // Highlights
+                ctx.fillStyle = highlightColor; 
+                ctx.fillRect(Math.floor(pipe.x) + 5, 0, 4, pipe.topHeight - 20);
+                ctx.fillRect(Math.floor(pipe.x) + 5, bottomY + 20, 4, state.height);
+            });
+        }
+
+        // --- CORE FUNCTIONS ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function loop() {
+            if (state.screen === 'playing') {
+                ctx.clearRect(0, 0, state.width, state.height);
+                updatePipes();
+                player.update();
+                updateParticles();
+                drawPipes(ctx);
+                player.draw(ctx);
+                drawParticles(ctx);
+            } else if (state.screen === 'lobby' || state.screen === 'paused') {
+                if(state.screen === 'lobby') ctx.clearRect(0, 0, state.width, state.height);
+            }
+            requestAnimationFrame(loop);
+        }
+
+        function startGame() {
+            audioManager.init();
+            audioManager.playClick();
+            audioManager.playMusic('game');
+
+            const settings = DIFFICULTY_SETTINGS[state.difficulty];
+
+            state.screen = 'playing';
+            state.score = 0;
+            state.pipes = [];
+            state.particles = [];
+            state.pipeSpeed = settings.baseSpeed;
+            
+            player.x = state.width * 0.15;
+            player.y = state.height / 2;
+            player.velocity = 0;
+
+            state.playerName = document.getElementById('playerName').value.trim().toUpperCase() || 'BITBOX';
+
+            document.getElementById('currentScore').innerText = '0';
+            toggleUI('game');
+        }
+
+        function endGame() {
+            audioManager.playSound('crash');
+            audioManager.playMusic('lobby');
+            state.screen = 'gameover';
+            
+            if (state.score > state.highScore) {
+                state.highScore = state.score;
+                localStorage.setItem('bitbox_highscore', state.highScore);
+            }
+            saveToLeaderboard(state.playerName, state.score, state.difficulty);
+
+            document.getElementById('finalScore').innerText = state.score;
+            document.getElementById('finalBest').innerText = state.highScore;
+            toggleUI('gameover');
+        }
+
+        function togglePause() {
+            audioManager.playClick();
+            if (state.screen === 'playing') {
+                state.screen = 'paused';
+                audioManager.stopMusic();
+                toggleUI('paused');
+            } else if (state.screen === 'paused') {
+                state.screen = 'playing';
+                audioManager.playMusic('game');
+                toggleUI('game');
+            }
+        }
+
+        function toggleUI(mode) {
+            ['lobby', 'gameUI', 'gameOver', 'pauseMenu', 'lobbyControls', 'gameControls', 'sys-header'].forEach(id => {
+                 document.getElementById(id).classList.add('hidden');
+            });
+
+            if (mode === 'lobby') {
+                const lobby = document.getElementById('lobby');
+                lobby.classList.remove('hidden');
+                lobby.classList.add('visible');
+                document.getElementById('lobbyControls').classList.remove('hidden');
+                document.getElementById('sys-header').classList.remove('hidden');
+                document.getElementById('sys-header').classList.add('visible');
+            } else if (mode === 'game') {
+                document.getElementById('gameUI').classList.remove('hidden');
+                document.getElementById('gameControls').classList.remove('hidden');
+            } else if (mode === 'paused') {
+                document.getElementById('gameUI').classList.remove('hidden');
+                document.getElementById('pauseMenu').classList.remove('hidden');
+            } else if (mode === 'gameover') {
+                document.getElementById('gameOver').classList.remove('hidden');
+            }
+        }
+
+        // --- INITIALIZATION & EVENTS ---
+        
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            state.width = canvas.width;
+            state.height = canvas.height;
+            ctx.imageSmoothingEnabled = false; 
+        }
+
+        window.onload = function() {
+            resize();
+            const splash = document.getElementById('splash-screen');
+            const prompt = document.getElementById('start-prompt');
+            const sysHeader = document.getElementById('sys-header');
+            const lobby = document.getElementById('lobby');
+            
+            setupModal('lobbyLeaderboardBtn', 'leaderboardModal', renderLeaderboard);
+            setupModal('lobbySettingsBtn', 'settingsModal');
+            setupModal('pauseSettingsBtn', 'settingsModal');
+            setupModal('lobbyRulesBtn', 'rulesModal');
+            
+            document.querySelectorAll('.diff-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    audioManager.playClick();
+                    document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    state.difficulty = e.target.getAttribute('data-mode');
+                });
+            });
+
+            document.querySelectorAll('.close-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    audioManager.playClick();
+                    document.querySelectorAll('.modal-overlay:not(#pauseMenu):not(#gameOver)').forEach(m => m.classList.add('hidden'));
+                });
+            });
+
+            const vids = document.querySelectorAll('video');
+            vids.forEach(v => {
+                v.play().catch(e => console.log("Video autoplay prevented until interaction"));
+            });
+
+            document.addEventListener('click', (e) => {
+                if(e.target.matches('button, .pixel-btn, .control-btn, .pixel-toggle') || 
+                   e.target.closest('button')) {
+                    audioManager.playClick();
+                }
+            });
+
+            const handleStartTap = () => {
+                splash.removeEventListener('click', handleStartTap);
+                audioManager.init();
+                audioManager.playCling();
+                splash.classList.add('fade-out');
+                prompt.style.display = 'none';
+                
+                setTimeout(() => {
+                    audioManager.playMusic('lobby');
+                    sysHeader.classList.add('visible');
+                    lobby.classList.add('visible');
+                }, 2500);
+            };
+            splash.addEventListener('click', handleStartTap);
+
+            document.getElementById('startBtn').addEventListener('click', startGame);
+            document.getElementById('restartBtn').addEventListener('click', startGame);
+            document.getElementById('pauseRestartBtn').addEventListener('click', startGame);
+            document.getElementById('resumeBtn').addEventListener('click', togglePause);
+            document.getElementById('pauseBtn').addEventListener('click', togglePause);
+            
+            ['homeBtn', 'pauseHomeBtn'].forEach(id => {
+                document.getElementById(id).addEventListener('click', () => {
+                    audioManager.playClick();
+                    audioManager.playMusic('lobby');
+                    state.screen = 'lobby';
+                    toggleUI('lobby');
+                });
+            });
+
+            document.getElementById('bgmToggle').addEventListener('click', () => audioManager.toggleBGM());
+            document.getElementById('sfxToggle').addEventListener('click', () => audioManager.toggleSFX());
+
+            window.addEventListener('keydown', (e) => {
+                if(document.activeElement === document.getElementById('playerName')) return;
+                
+                if (e.code === 'Space') {
+                     if(state.screen === 'playing') player.flap();
+                     else if(state.screen === 'lobby') startGame();
+                }
+                if (e.code === 'Escape') togglePause();
+            });
+            window.addEventListener('touchstart', (e) => {
+                if(e.target === document.getElementById('playerName')) return;
+                if(state.screen === 'playing' && !e.target.closest('button')) player.flap();
+            });
+            window.addEventListener('mousedown', (e) => {
+                if(e.target === document.getElementById('playerName')) return;
+                if(state.screen === 'playing' && !e.target.closest('button')) player.flap();
+            });
+
+            document.getElementById('highScoreDisplay').innerText = `BEST: ${state.highScore}`;
+            requestAnimationFrame(loop);
+        };
+
+        window.addEventListener('resize', resize);
+
+        function setupModal(btnId, modalId, cb) {
+            const btn = document.getElementById(btnId);
+            if(btn) {
+                btn.addEventListener('click', () => {
+                    audioManager.playClick();
+                    document.getElementById(modalId).classList.remove('hidden');
+                    if(cb) cb();
+                });
+            }
+        }
+
+        function saveToLeaderboard(name, score, diff) {
+            let scores = JSON.parse(localStorage.getItem('bitbox_leaderboard') || '[]');
+            scores.push({ name, score, diff, date: new Date().toLocaleDateString() });
+            scores.sort((a, b) => b.score - a.score);
+            scores = scores.slice(0, 10);
+            localStorage.setItem('bitbox_leaderboard', JSON.stringify(scores));
+        }
+
+        function renderLeaderboard() {
+            const list = document.getElementById('scoresList');
+            const scores = JSON.parse(localStorage.getItem('bitbox_leaderboard') || '[]');
+            if (scores.length === 0) {
+                list.innerHTML = '<div class="text-center text-orange-400 mt-10">NO SCORES YET</div>';
+                return;
+            }
+            list.innerHTML = scores.map((entry, i) => `
+                <div class="flex justify-between items-center bg-orange-200/50 p-2 rounded mb-1">
+                    <div class="flex flex-col text-left">
+                        <span class="font-bold text-orange-900 text-xs">${entry.name || 'BITBOX'}</span>
+                        <span class="text-[10px] text-orange-700">${entry.date} [${entry.diff || 'AVG'}]</span>
+                    </div>
+                    <span class="font-bold text-orange-700 text-lg">${entry.score}</span>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
