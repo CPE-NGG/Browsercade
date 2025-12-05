@@ -387,7 +387,7 @@
             <h3 class="text-xl text-center text-orange-500 mb-4">SURVIVAL GUIDE</h3>
             <ul class="text-sm space-y-3 font-mono text-gray-300 mb-6 text-left pl-4">
                 <li>🔥 Tap/Click to FLY.</li>
-                <li>🌋 Avoid OBSIDIAN PIPES.</li>
+                <li>🌋 Avoid PIPES.</li>
                 <li>☠️ Don't hit the ground.</li>
                 <li>🏆 Rank up in Hell.</li>
             </ul>
@@ -520,30 +520,33 @@
         };
 
         // --- GAME SETTINGS ---
+        // UNIFIED DISTANCE for consistent rhythm
+        const PIPE_SPACING = 320;
+
         const DIFFICULTY_SETTINGS = {
             EASY: {
+                // Moderate speed, large gap, gentle slopes
+                speed: 2.0,
+                pipeGap: 220,
                 gravity: 0.2,
                 jumpStrength: -4.5,
-                pipeGap: 210,       
-                pipeDistance: 350,
-                baseSpeed: 1.5,
-                maxChange: 150
+                maxChange: 100 // Very gentle vertical changes
             },
             NORMAL: {
+                // Medium speed, medium gap, medium slopes
+                speed: 3.0,
+                pipeGap: 170,
                 gravity: 0.25,
                 jumpStrength: -5,
-                pipeGap: 170,
-                pipeDistance: 280,
-                baseSpeed: 2.5,
-                maxChange: 250
+                maxChange: 180 
             },
             HARD: {
+                // Fast speed, tight gap, steeper slopes but SAFE
+                speed: 4.0,
+                pipeGap: 145,
                 gravity: 0.35,
                 jumpStrength: -6,
-                pipeGap: 150,       
-                pipeDistance: 240,  
-                baseSpeed: 3.5,
-                maxChange: 350
+                maxChange: 240 // Cap vertical shift to prevent impossible jumps
             }
         };
 
@@ -727,11 +730,12 @@
             const settings = DIFFICULTY_SETTINGS[state.difficulty];
             let spawnNeeded = false;
             
+            // LOGIC UPDATE: Use constant PIPE_SPACING
             if (state.pipes.length === 0) {
                 spawnNeeded = true;
             } else {
                 const lastPipe = state.pipes[state.pipes.length - 1];
-                if (state.width - lastPipe.x >= settings.pipeDistance) {
+                if (state.width - lastPipe.x >= PIPE_SPACING) {
                     spawnNeeded = true;
                 }
             }
@@ -741,12 +745,19 @@
                 const availableHeight = state.height - settings.pipeGap - (minHeight * 2);
                 let topHeight;
 
+                // LOGIC UPDATE: Enforce smooth vertical transitions
                 if (state.pipes.length === 0) {
+                    // First pipe central
                     topHeight = availableHeight / 2 + minHeight;
                 } else {
                     const lastHeight = state.pipes[state.pipes.length - 1].topHeight;
+                    
+                    // Clamp the next pipe position to within +/- maxChange of the previous pipe
+                    // This prevents "impossible patterns" like extremely low to extremely high
                     const minSafe = Math.max(minHeight, lastHeight - settings.maxChange);
                     const maxSafe = Math.min(availableHeight + minHeight, lastHeight + settings.maxChange);
+                    
+                    // Generate random within safe bounds
                     topHeight = Math.floor(Math.random() * (maxSafe - minSafe + 1)) + minSafe;
                 }
                 
@@ -773,7 +784,11 @@
                     state.score++;
                     document.getElementById('currentScore').innerText = state.score;
                     audioManager.playSound('score');
-                    if(state.score % 5 === 0) state.pipeSpeed += 0.1; 
+                    
+                    // Optional: Slight speed increase per score, but capped to avoid physics breakage
+                    if(state.score % 5 === 0 && state.pipeSpeed < settings.speed + 2) {
+                        state.pipeSpeed += 0.1; 
+                    }
                 }
             }
         }
@@ -849,7 +864,7 @@
             state.score = 0;
             state.pipes = [];
             state.particles = [];
-            state.pipeSpeed = settings.baseSpeed;
+            state.pipeSpeed = settings.speed; // Use 'speed' from new settings
             
             player.x = state.width * 0.15;
             player.y = state.height / 2;
