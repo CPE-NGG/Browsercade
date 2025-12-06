@@ -451,7 +451,23 @@
             playCling: function() {
                 if (!this.ctx) return;
                 if (this.ctx.state === 'suspended') this.ctx.resume();
-                this.playTone(200, 'sawtooth', 0.5, 0.2);
+                
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = 'triangle'; 
+                osc.frequency.setValueAtTime(1200, t); 
+                osc.frequency.exponentialRampToValueAtTime(800, t + 0.4);
+                
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.3, t + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(t);
+                osc.stop(t + 1.5);
             },
 
             playClick: function() {

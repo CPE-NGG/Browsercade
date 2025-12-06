@@ -32,6 +32,83 @@
             flex-direction: column;
             overflow: hidden;
             user-select: none;
+            touch-action: none; 
+        }
+
+        /* --- BROWSERCADE BRANDING --- */
+        .brand-header {
+            position: absolute;
+            top: 5%; 
+            width: 100%;
+            text-align: center;
+            pointer-events: none;
+            z-index: 50; 
+            animation: float 3s ease-in-out infinite;
+            opacity: 0; 
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .brand-header.visible { opacity: 1; }
+
+        .brand-text {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 2rem;
+            color: #fff;
+            text-shadow: 4px 4px 0px #00FF85; /* Neon Green Shadow */
+            letter-spacing: 4px;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* --- SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: transparent;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 2.5s ease-in-out;
+            cursor: pointer;
+        }
+        #splash-screen.fade-out { opacity: 0; pointer-events: none; }
+        
+        #splash-screen video { 
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100dvh; 
+            object-fit: cover; 
+            pointer-events: none;
+            z-index: 1;
+            mix-blend-mode: screen;
+        }
+
+        .vid-landscape { display: block; }
+        .vid-portrait { display: none; }
+
+        #start-prompt {
+            position: absolute; bottom: 20%; font-family: 'Press Start 2P', cursive;
+            color: var(--neon-green); 
+            font-size: 1rem; animation: blink 0.8s infinite;
+            text-transform: uppercase; text-shadow: 2px 2px 0px #000; pointer-events: none;
+            z-index: 10; 
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* --- CRT SCANLINE OVERLAY --- */
+        .crt-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0.6;
         }
 
         /* --- UI COMPONENTS --- */
@@ -39,13 +116,13 @@
             flex: 0 0 50px;
             background: var(--panel-bg);
             border-bottom: 3px solid var(--neon-green);
-            padding: 0 20px;
+            padding: 0 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-size: 10px;
             box-shadow: 0 0 20px rgba(0, 255, 133, 0.2);
-            z-index: 10;
+            z-index: 20;
         }
 
         #game-wrapper {
@@ -54,7 +131,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: radial-gradient(circle at center, #112211 0%, #000000 100%);
+            background: #000;
             overflow: hidden;
         }
 
@@ -62,9 +139,8 @@
             position: relative;
             box-shadow: 0 0 40px rgba(0, 255, 133, 0.1);
             border: 4px solid #1a1a1a;
-            /* Adjust canvas container size */
             width: 750px; 
-            max-width: 95%;
+            max-width: 98%;
             aspect-ratio: 3/2;
         }
 
@@ -76,20 +152,23 @@
         }
 
         .bottom-bar {
-            flex: 0 0 110px;
+            flex: 0 0 auto;
+            min-height: 100px;
             background: var(--panel-bg);
             border-top: 3px solid var(--neon-green);
-            padding: 10px 20px;
+            padding: 10px;
             display: flex;
             gap: 10px;
             justify-content: center;
             align-items: center;
-            z-index: 10;
+            z-index: 20;
+            flex-wrap: wrap; 
+            overflow-y: auto;
         }
 
         /* --- BUTTON STYLES --- */
-        .stats-group { display: flex; gap: 25px; align-items: center;}
-        .stat { display: flex; align-items: center; gap: 8px; color: #fff; text-shadow: 2px 2px 0 #000; }
+        .stats-group { display: flex; gap: 15px; align-items: center;}
+        .stat { display: flex; align-items: center; gap: 5px; color: #fff; text-shadow: 2px 2px 0 #000; white-space: nowrap; }
         .stat span { color: var(--toxic-yellow); }
 
         button {
@@ -100,6 +179,7 @@
             cursor: pointer;
             transition: all 0.1s;
             text-transform: uppercase;
+            touch-action: manipulation;
         }
         
         button:hover:not(:disabled) { filter: brightness(1.2); transform: translateY(-2px); }
@@ -111,8 +191,8 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            width: 85px;
-            height: 85px;
+            width: 80px;
+            height: 80px;
             border-radius: 4px;
             position: relative;
             background: #0d0d0d;
@@ -128,15 +208,9 @@
         }
         @keyframes pulse { from { box-shadow: 0 0 10px var(--neon-green); } to { box-shadow: 0 0 20px var(--neon-green); } }
 
-        .tower-preview {
-            width: 30px; 
-            height: 30px;
-            image-rendering: pixelated;
-        }
-
+        .tower-preview { width: 30px; height: 30px; image-rendering: pixelated; }
         .tower-cost { font-size: 8px; margin-top: 4px; color: var(--toxic-yellow); }
         .tower-name { font-size: 7px; color: #aaa; }
-        
         .tower-btn:disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
 
         .action-btn {
@@ -146,22 +220,18 @@
             border: 2px solid var(--contrast-orange);
             color: var(--contrast-orange);
             background: rgba(255, 122, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 5px;
+            display: flex; flex-direction: column; justify-content: center; gap: 5px;
         }
         .action-btn:hover { background: var(--contrast-orange); color: #000; }
 
-        .speed-btn {
-            height: 40px; width: 40px;
-            border: 2px solid var(--contrast-blue);
-            color: var(--contrast-blue);
-            font-size: 12px;
+        .icon-btn {
+            width: 40px; height: 40px;
+            border: 2px solid #555;
+            color: #fff; font-size: 16px;
             display: flex; align-items: center; justify-content: center;
         }
 
-        /* --- UPGRADE MENU (Floating) --- */
+        /* --- FLOATING UPGRADE MENU --- */
         #upgrade-menu {
             position: absolute;
             background: rgba(0, 10, 5, 0.95);
@@ -172,17 +242,17 @@
             flex-direction: column;
             gap: 8px;
             z-index: 100;
-            width: 120px;
+            width: 140px;
         }
-        #upgrade-menu button {
-            width: 100%; padding: 8px; font-size: 8px; border: 1px solid #444; color: #fff;
-        }
+        .stat-row { display: flex; justify-content: space-between; font-size: 7px; color: #aaa; margin-bottom: 2px; }
+        .stat-val { color: #fff; }
+        #upgrade-menu button { width: 100%; padding: 10px; font-size: 8px; border: 1px solid #444; color: #fff; }
         
         /* --- MODALS --- */
         .modal-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: #050505;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -190,19 +260,82 @@
             z-index: 200;
             text-align: center;
         }
+        .modal-content {
+            background: #111;
+            border: 2px solid var(--neon-green);
+            padding: 20px;
+            max-width: 80%;
+            width: 300px;
+            box-shadow: 0 0 30px rgba(0, 255, 133, 0.2);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .close-btn {
+            position: absolute; top: 10px; right: 10px;
+            border: 1px solid #555; background: #000; color: #fff;
+            width: 24px; height: 24px; cursor: pointer;
+        }
         .hidden { display: none !important; }
 
-        /* Animated Background for Lobby */
+        /* --- LOBBY ELEMENTS --- */
+        /* UPDATED: Global Background for seamless animation */
         #lobby-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; opacity: 0.3; pointer-events: none;
+        }
+        
+        /* Main Start Screen Visibility Control */
+        #start-screen {
+            opacity: 0; 
+            transition: opacity 1s ease-in; /* Fade in lobby after splash */
+            pointer-events: none;
+            background: transparent; /* Allow canvas to show through */
+        }
+        #start-screen.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        /* NEW TOP RIGHT CONTROLS */
+        .lobby-header-controls {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1;
-            opacity: 0.4;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 210;
+            background: rgba(0,0,0,0.8);
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        
+        .icon-btn-small {
+            background: transparent;
+            border: 1px solid #555;
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+        .icon-btn-small:hover {
+            background: #222;
+            border-color: var(--neon-green);
+            transform: scale(1.1);
         }
 
-        .biome-select { display: flex; gap: 15px; margin-top: 20px; }
+        .biome-select { display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
         .biome-card {
-            width: 100px; height: 120px;
+            width: 90px; height: 110px;
             border: 2px solid #555;
             background: #111;
             display: flex; flex-direction: column;
@@ -212,32 +345,113 @@
             transition: 0.2s;
             gap: 10px;
         }
-        .biome-card:hover { border-color: var(--neon-green); transform: scale(1.05); background: #051505; }
+        .biome-card.active { border-color: var(--neon-green); background: #051505; box-shadow: 0 0 10px var(--neon-green); }
         .biome-icon { width: 40px; height: 40px; background: #333; }
-        
+
+        .difficulty-select { display: flex; gap: 10px; margin-top: 20px; }
+        .diff-btn { padding: 10px; font-size: 10px; min-width: 80px; }
+        .diff-btn.selected { background: var(--contrast-blue); color: #000; border-color: #fff; }
+
+        /* Leaderboard Table */
+        .leaderboard-table { width: 100%; border-collapse: collapse; font-size: 10px; margin-top: 20px; }
+        .leaderboard-table th { color: var(--toxic-yellow); padding: 10px; border-bottom: 1px solid #333; text-align: left; }
+        .leaderboard-table td { color: #fff; padding: 10px; border-bottom: 1px solid #111; }
+        .leaderboard-table tr:last-child td { border-bottom: none; }
+
+        /* Rules Text */
+        .rules-text { font-size: 10px; line-height: 1.6; color: #ccc; text-align: left; margin-top: 15px; width: 100%; }
+        .rule-item { margin-bottom: 10px; display: flex; gap: 10px; align-items: center; }
+
+        /* INPUT FIELD */
+        input[type="text"] {
+            background: #000;
+            border: 2px solid var(--neon-green);
+            color: var(--neon-green);
+            padding: 10px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            text-transform: uppercase;
+            width: 250px;
+            max-width: 80%;
+            margin: 15px 0;
+            outline: none;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .stats-group { font-size: 8px; gap: 8px; }
+            .stat span { font-size: 9px; }
+            .bottom-bar { padding: 5px; gap: 5px; justify-content: space-between; }
+            .tower-btn { width: 60px; height: 60px; }
+            .action-btn { width: 60px; height: 60px; font-size: 8px; padding: 0; }
+            .biome-card { width: 80px; height: 100px; }
+            h1 { font-size: 30px !important; }
+            
+            /* Mobile adjustment for top right box */
+            .lobby-header-controls {
+                top: 10px;
+                right: 10px;
+                gap: 5px;
+                padding: 5px;
+            }
+            .icon-btn-small {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+        }
+
+        /* Orientation queries for Splash Video */
+        @media (orientation: portrait) {
+            .vid-landscape { display: none; }
+            .vid-portrait { display: block; }
+            .brand-header { top: 5%; }
+            .brand-text { font-size: 1.5rem; letter-spacing: 2px; }
+        }
     </style>
 </head>
 <body>
 
-<div class="top-bar">
+<canvas id="lobby-bg"></canvas> 
+
+<div class="brand-header" id="sys-header">
+    <div class="brand-text">BROWSERCADE</div>
+</div>
+
+<div id="splash-screen">
+    <video id="vid-ls" class="vid-landscape" autoplay muted loop playsinline>
+        <source src="../assets/BrowsercadeLS.mp4" type="video/mp4">
+    </video>
+    <video id="vid-pr" class="vid-portrait" autoplay muted loop playsinline>
+        <source src="../assets/BrowsercadePR.mp4" type="video/mp4">
+    </video>
+    <div id="start-prompt">TAP TO START</div>
+</div>
+
+<div class="crt-overlay"></div>
+
+<div class="top-bar hidden" id="ui-top">
     <div class="stats-group">
         <div class="stat">HP <span id="lives-display">20</span></div>
         <div class="stat">CASH <span id="money-display">100</span></div>
         <div class="stat">WAVE <span id="wave-display">1</span></div>
     </div>
     <div style="display:flex; gap:10px;">
-        <button class="speed-btn" id="btn-speed" onclick="game.toggleSpeed()">1x</button>
-        <button id="btn-pause" onclick="game.togglePause()" style="padding: 5px 15px; font-size: 10px; border-color: var(--contrast-magenta); color:var(--contrast-magenta)">PAUSE</button>
+        <button class="icon-btn" id="btn-speed" onclick="game.toggleSpeed()">1x</button>
+        <button class="icon-btn" id="btn-pause" onclick="game.togglePause()" style="border-color: var(--contrast-magenta); color:var(--contrast-magenta)">II</button>
     </div>
 </div>
 
-<div id="game-wrapper">
+<div id="game-wrapper" class="hidden">
     <div id="game-canvas-container">
         <canvas id="gameCanvas" width="750" height="500"></canvas>
         
-        <!-- Floating Menu -->
         <div id="upgrade-menu">
-            <div style="font-size:8px; text-align:center; color:var(--contrast-blue); margin-bottom:2px;">LVL <span id="tower-level">1</span></div>
+            <div style="font-size:8px; text-align:center; color:var(--contrast-blue); margin-bottom:5px;">SYSTEM UPGRADE</div>
+            <div class="stat-row"><span>DMG:</span><span id="stat-dmg" class="stat-val">10</span></div>
+            <div class="stat-row"><span>RNG:</span><span id="stat-rng" class="stat-val">150</span></div>
+            <div class="stat-row"><span>SPD:</span><span id="stat-spd" class="stat-val">30</span></div>
+            <hr style="border:0; border-top:1px solid #333; width:100%; margin: 5px 0;">
             <button id="btn-upgrade" style="border-color:var(--toxic-yellow); color:var(--toxic-yellow)">UPGRADE <span id="upgrade-cost"></span></button>
             <button id="btn-sell" style="border-color:var(--contrast-magenta); color:var(--contrast-magenta)">SELL <span id="sell-cost"></span></button>
             <button onclick="game.closeMenu()" style="border:none; background:none; color:#555;">CANCEL</button>
@@ -245,7 +459,7 @@
     </div>
 </div>
 
-<div class="bottom-bar">
+<div class="bottom-bar hidden" id="ui-bottom">
     <button class="tower-btn" id="btn-tower-0" onclick="game.selectTowerType(0)">
         <canvas class="tower-preview" id="prev-0" width="30" height="30"></canvas>
         <span class="tower-name">PHOTON</span>
@@ -275,71 +489,262 @@
     </button>
 </div>
 
-<!-- START SCREEN -->
 <div id="start-screen" class="modal-screen">
-    <canvas id="lobby-bg"></canvas> <!-- Animated Matrix Rain -->
-    <h1 style="font-size:50px; color:var(--neon-green); text-shadow: 0 0 30px var(--neon-green); margin-bottom:10px;">GRIDGUARD</h1>
-    <div style="color:var(--toxic-yellow); font-size:12px; margin-bottom:40px; letter-spacing: 2px;">TACTICAL DEFENSE PROTOCOL</div>
     
-    <p style="color:#fff; font-size:10px; margin-bottom:15px;">SELECT OPERATION ZONE</p>
+    <div class="lobby-header-controls">
+        <button class="icon-btn-small" onclick="location.reload()" title="Hub">🏠</button>
+        <button class="icon-btn-small" onclick="Menus.open('leaderboard')" title="Leaderboard">🏆</button>
+        <button class="icon-btn-small" onclick="Menus.open('settings')" title="Settings">⚙️</button>
+        <button class="icon-btn-small" onclick="Menus.open('rules')" title="Rules">📜</button>
+    </div>
+
+    <h1 style="font-size:50px; color:var(--neon-green); text-shadow: 0 0 30px var(--neon-green); margin-bottom:10px;">GRIDGUARD</h1>
+    <div style="color:var(--toxic-yellow); font-size:12px; margin-bottom:20px; letter-spacing: 2px;">TACTICAL DEFENSE PROTOCOL</div>
+
+    <p style="color:#fff; font-size:10px; margin-bottom:10px;">DIFFICULTY</p>
+    <div class="difficulty-select">
+        <button class="diff-btn" id="diff-0" onclick="setDiff(0)">EASY</button>
+        <button class="diff-btn selected" id="diff-1" onclick="setDiff(1)">NORMAL</button>
+        <button class="diff-btn" id="diff-2" onclick="setDiff(2)">HARD</button>
+    </div>
+
+    <p style="color:#fff; font-size:10px; margin:20px 0 10px 0;">OPERATION ZONE</p>
     <div class="biome-select">
-        <div class="biome-card" onclick="startGame('jungle')" style="border-color:var(--neon-green)">
+        <div class="biome-card active" id="biome-jungle" onclick="selectBiome('jungle')" style="border-color:var(--neon-green)">
             <div class="biome-icon" style="background:#024A3F"></div>
             <div style="font-size:8px; color:var(--neon-green)">NEON<br>JUNGLE</div>
         </div>
-        <div class="biome-card" onclick="startGame('swamp')" style="border-color:var(--toxic-yellow)">
+        <div class="biome-card" id="biome-swamp" onclick="selectBiome('swamp')" style="border-color:var(--toxic-yellow)">
             <div class="biome-icon" style="background:#203a20"></div>
             <div style="font-size:8px; color:var(--toxic-yellow)">ACID<br>SWAMP</div>
         </div>
-        <div class="biome-card" onclick="startGame('lab')" style="border-color:var(--contrast-blue)">
+        <div class="biome-card" id="biome-lab" onclick="selectBiome('lab')" style="border-color:var(--contrast-blue)">
             <div class="biome-icon" style="background:#333"></div>
             <div style="font-size:8px; color:var(--contrast-blue)">BIO<br>LAB</div>
         </div>
     </div>
+    
+    <button onclick="startGame()" style="margin-top:30px; padding:15px 40px; font-size:14px; border-color:var(--neon-green); color:var(--neon-green); background:#001100;">INITIALIZE</button>
 </div>
 
-<!-- PAUSE SCREEN (Added) -->
-<div id="pause-screen" class="modal-screen hidden">
-    <h1 style="color:var(--contrast-magenta); margin-bottom:20px;">SYSTEM PAUSED</h1>
-    <div style="display:flex; gap:20px; flex-direction:column;">
-        <button onclick="game.togglePause()" style="padding:15px; width:200px; color:var(--neon-green); border-color:var(--neon-green)">RESUME</button>
-        <button onclick="location.reload()" style="padding:15px; width:200px; color:var(--contrast-orange); border-color:var(--contrast-orange)">ABORT MISSION</button>
+<div id="leaderboard-screen" class="modal-screen hidden">
+    <div class="modal-content">
+        <button class="close-btn" onclick="Menus.close('leaderboard')">X</button>
+        <h2 style="color:var(--toxic-yellow);">ELITE DEFENDERS</h2>
+        <table class="leaderboard-table">
+            <thead>
+                <tr><th>RANK</th><th>OPERATOR</th><th>WAVE</th></tr>
+            </thead>
+            <tbody id="score-table-body">
+                </tbody>
+        </table>
+        <button onclick="Leaderboard.clearScores()" style="margin-top:20px; font-size:8px; padding:8px 15px; border-color:#555; color:#aaa; background:transparent;">RESET DATA</button>
     </div>
 </div>
 
-<div id="game-over-screen" class="modal-screen hidden">
-    <h1 style="color:var(--contrast-magenta); font-size:40px;">BREACH DETECTED</h1>
-    <p style="margin:20px 0;">SYSTEM CRITICAL</p>
-    <p>WAVES SURVIVED: <span id="final-wave" style="color:var(--neon-green)">0</span></p>
-    <button onclick="location.reload()" style="padding:15px 30px; margin-top:30px; border-color:var(--neon-green); color:var(--neon-green);">REBOOT SYSTEM</button>
+<div id="rules-screen" class="modal-screen hidden">
+    <div class="modal-content">
+        <button class="close-btn" onclick="Menus.close('rules')">X</button>
+        <h2 style="color:var(--contrast-blue);">MISSION BRIEF</h2>
+        <div class="rules-text">
+            <div class="rule-item"><span style="color:var(--neon-green)">PHOTON:</span> Rapid fire, low damage. Good for early waves.</div>
+            <div class="rule-item"><span style="color:var(--contrast-blue)">IONIC:</span> Long range sniper. High single target damage.</div>
+            <div class="rule-item"><span style="color:var(--contrast-magenta)">DETOX:</span> Slows enemies. Essential for crowd control.</div>
+            <div class="rule-item"><span style="color:var(--deep-purple)">VOLT:</span> Area damage pulse. Destroys groups.</div>
+            <hr style="border-color:#333; margin:10px 0;">
+            <p>Protect the core from the Overgrowth. Earn cash to upgrade tech.</p>
+        </div>
+    </div>
+</div>
+
+<div id="settings-screen" class="modal-screen hidden">
+    <div class="modal-content">
+        <button class="close-btn" onclick="Menus.close('settings')">X</button>
+        <h2 style="color:var(--contrast-orange);">SYSTEM SETTINGS</h2>
+        <div style="display:flex; flex-direction:column; gap:15px; margin-top:20px; align-items: center; width: 100%;">
+            <button onclick="AudioSys.toggleMusic()" id="btn-music-toggle" style="width: 200px;">MUSIC: ON</button>
+            <button onclick="AudioSys.toggleSFX()" id="btn-sfx-toggle" style="width: 200px;">SFX: ON</button>
+        </div>
+    </div>
+</div>
+
+<div id="pause-screen" class="modal-screen hidden" style="background:rgba(0,0,0,0.85);">
+    <h1 style="color:var(--contrast-magenta); margin-bottom:20px;">SYSTEM PAUSED</h1>
+    <div style="display:flex; gap:20px; flex-direction:column; align-items: center;">
+        <button onclick="game.togglePause()" style="padding:15px; width:220px; color:var(--neon-green); border-color:var(--neon-green)">RESUME</button>
+        
+        <div style="display:flex; gap:10px; justify-content:center; width: 220px;">
+            <button onclick="AudioSys.toggleMusic()" id="btn-music-pause" style="flex:1;">MUSIC: ON</button>
+            <button onclick="AudioSys.toggleSFX()" id="btn-sfx-pause" style="flex:1;">SFX: ON</button>
+        </div>
+
+        <button onclick="location.reload()" style="padding:15px; width:220px; color:var(--contrast-orange); border-color:var(--contrast-orange)">ABORT MISSION</button>
+    </div>
+</div>
+
+<div id="game-over-screen" class="modal-screen hidden" style="background:rgba(0,0,0,0.95);">
+    <h1 style="color:var(--contrast-magenta); font-size:30px;">BREACH DETECTED</h1>
+    <p style="margin:20px 0;">WAVES SURVIVED: <span id="final-wave" style="color:var(--neon-green)">0</span></p>
+    
+    <div id="high-score-form" class="hidden" style="display:flex; flex-direction:column; align-items:center; width:100%;">
+        <p style="color:var(--toxic-yellow); font-size:12px; animation: pulse 0.5s infinite;">NEW HIGH SCORE RECORD!</p>
+        <input type="text" id="player-name" placeholder="ENTER OPERATOR ID" maxlength="12">
+        <button onclick="Leaderboard.saveScore()" style="margin-top:10px; border-color:var(--contrast-blue); color:var(--contrast-blue);">SAVE RECORD</button>
+    </div>
+
+    <button id="btn-reboot" onclick="location.reload()" style="padding:15px 30px; margin-top:30px; border-color:var(--neon-green); color:var(--neon-green);">REBOOT SYSTEM</button>
 </div>
 
 <script>
-/**
- * GRIDGUARD v4.0
- * Fixes: Single-Shot Placement, Pause Menu, Lab Pathing
- */
+    
+// --- LEADERBOARD SYSTEM ---
+const Leaderboard = {
+    STORAGE_KEY: 'gridguard_scores_v1',
+    
+    getScores() {
+        const data = localStorage.getItem(this.STORAGE_KEY);
+        return data ? JSON.parse(data) : [];
+    },
 
-// --- AUDIO SYSTEM ---
+    isHighScore(wave) {
+        const scores = this.getScores();
+        if (scores.length < 5) return true;
+        return wave > scores[scores.length - 1].wave;
+    },
+
+    saveScore() {
+        const nameInput = document.getElementById('player-name');
+        let name = nameInput.value.trim() || "UNKNOWN";
+        const wave = game.state.wave;
+        
+        let scores = this.getScores();
+        scores.push({ name: name.toUpperCase(), wave: wave });
+        
+        // Sort descending
+        scores.sort((a, b) => b.wave - a.wave);
+        
+        // Keep top 5
+        scores = scores.slice(0, 5);
+        
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(scores));
+        AudioSys.sfx('build'); // Confirm sound
+        location.reload();
+    },
+
+    clearScores() {
+        if(confirm("DELETE ALL RECORDS?")) {
+            localStorage.removeItem(this.STORAGE_KEY);
+            this.render();
+            AudioSys.sfx('error');
+        }
+    },
+
+    render() {
+        const tbody = document.getElementById('score-table-body');
+        tbody.innerHTML = '';
+        const scores = this.getScores();
+
+        if (scores.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#555;">NO RECORDS FOUND</td></tr>';
+            return;
+        }
+
+        scores.forEach((s, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${index + 1}</td><td>${s.name}</td><td>${s.wave}</td>`;
+            tbody.appendChild(tr);
+        });
+    }
+};
+
+// --- AUDIO SYSTEM & SEQUENCER ---
 const AudioSys = {
     ctx: null,
+    musicMuted: false,
+    sfxMuted: false,
+    timer: null,
+    isPlaying: false,
+    mode: 'lobby', 
+    beat: 0,
+    
     init() {
-        if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if(!this.ctx) {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if(this.ctx.state === 'suspended') this.ctx.resume();
     },
-    playTone(freq, type, dur, vol=0.1) {
+
+    toggleMusic() {
+        this.musicMuted = !this.musicMuted;
+        const txt = this.musicMuted ? "MUSIC: OFF" : "MUSIC: ON";
+        document.getElementById('btn-music-toggle').innerText = txt;
+        document.getElementById('btn-music-pause').innerText = txt;
+        
+        if(this.musicMuted) {
+            if(this.timer) clearInterval(this.timer);
+            this.isPlaying = false;
+        } else {
+            this.startMusic();
+        }
+        this.sfx('ui_click');
+    },
+
+    toggleSFX() {
+        this.sfxMuted = !this.sfxMuted;
+        const txt = this.sfxMuted ? "SFX: OFF" : "SFX: ON";
+        document.getElementById('btn-sfx-toggle').innerText = txt;
+        document.getElementById('btn-sfx-pause').innerText = txt;
+        this.sfx('ui_click'); 
+    },
+
+    playTone(freq, type, dur, vol=0.1, dest=null) {
         if(!this.ctx) return;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = type;
         osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-        gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + dur);
+        
+        // Attack/Decay envelope
+        gain.gain.setValueAtTime(0, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(vol, this.ctx.currentTime + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+
         osc.connect(gain);
-        gain.connect(this.ctx.destination);
+        gain.connect(dest || this.ctx.destination);
         osc.start();
         osc.stop(this.ctx.currentTime + dur);
     },
+
+    playCling: function() {
+        if (!this.ctx) this.init();
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        
+        osc.type = 'triangle'; 
+        osc.frequency.setValueAtTime(1200, t); 
+        osc.frequency.exponentialRampToValueAtTime(800, t + 0.4);
+        
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.3, t + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 1.5);
+    },
+
     sfx(name) {
+        if(this.sfxMuted) return;
+        if(!this.ctx) this.init();
+
+        if(name === 'ui_click') {
+            this.playTone(1200, 'square', 0.05, 0.05);
+            setTimeout(() => this.playTone(800, 'square', 0.05, 0.05), 50);
+        }
         if(name === 'shoot_0') this.playTone(800, 'square', 0.1, 0.05);
         if(name === 'shoot_1') this.playTone(300, 'sine', 0.2, 0.1);
         if(name === 'shoot_2') this.playTone(150, 'sawtooth', 0.3, 0.08);
@@ -347,10 +752,68 @@ const AudioSys = {
         if(name === 'hit') this.playTone(100, 'sawtooth', 0.1, 0.05);
         if(name === 'build') { this.playTone(440, 'square', 0.1, 0.1); setTimeout(()=>this.playTone(880, 'square', 0.1, 0.1), 100); }
         if(name === 'error') { this.playTone(150, 'sawtooth', 0.2, 0.1); setTimeout(()=>this.playTone(100, 'sawtooth', 0.2, 0.1), 100); }
+    },
+
+    startMusic() {
+        if(this.musicMuted || this.isPlaying) return;
+        this.isPlaying = true;
+        const bpm = 110;
+        const interval = (60 / bpm) * 1000 / 4; // 16th notes
+
+        this.timer = setInterval(() => {
+            this.beat = (this.beat + 1) % 64;
+            this.playTick();
+        }, interval);
+    },
+
+    playTick() {
+        if(this.musicMuted) return;
+        if(this.mode === 'lobby') {
+            const scale = [330, 415, 523, 660, 830];
+            if(this.beat % 8 === 0) {
+                const note = scale[Math.floor(Math.random()*scale.length)];
+                this.playTone(note, 'sine', 0.8, 0.05);
+            }
+            if(this.beat % 32 === 0) {
+                 this.playTone(82.4, 'triangle', 2.0, 0.1);
+            }
+        } else {
+            if(this.beat % 4 === 0) {
+                const bass = [92.5, 92.5, 110, 92.5, 73.4, 73.4, 82.4, 82.4];
+                const note = bass[Math.floor((this.beat/4)%8)];
+                this.playTone(note, 'sawtooth', 0.15, 0.08);
+            }
+            if(this.beat % 4 === 0) this.playTone(100, 'sine', 0.1, 0.3);
+            if(this.beat % 2 === 0) this.playTone(4000, 'square', 0.03, 0.02); 
+            if(this.beat % 2 === 0 && Math.random()>0.4) {
+                 const arp = [370, 440, 554, 740];
+                 const n = arp[Math.floor(Math.random()*arp.length)];
+                 this.playTone(n, 'triangle', 0.1, 0.04);
+            }
+        }
+    },
+
+    setMode(m) { this.mode = m; }
+};
+
+// --- MENU SYSTEM ---
+const Menus = {
+    open(id) {
+        document.querySelectorAll('.modal-screen').forEach(el => {
+            // Don't hide the start screen, it is the background
+            if(el.id !== 'start-screen') el.classList.add('hidden');
+        });
+        document.getElementById(id+'-screen').classList.remove('hidden');
+        if (id === 'leaderboard') Leaderboard.render(); 
+        AudioSys.sfx('ui_click');
+    },
+    close(id) {
+        document.getElementById(id+'-screen').classList.add('hidden');
+        AudioSys.sfx('ui_click');
     }
 };
 
-// --- GRAPHICS GENERATOR ---
+// --- GRAPHICS ---
 const TILE = 50; 
 const Gfx = {
     cache: {},
@@ -362,7 +825,6 @@ const Gfx = {
     getTower(type, lvl=1) {
         const key = `t_${type}_${lvl}`;
         if(this.cache[key]) return this.cache[key];
-        
         const c = this.createCanvas(TILE, TILE);
         const ctx = c.getContext('2d');
         const cx = TILE/2, cy = TILE/2;
@@ -370,20 +832,20 @@ const Gfx = {
         ctx.fillStyle = '#111'; ctx.fillRect(5, 5, 40, 40);
         ctx.fillStyle = '#0a2a20'; ctx.fillRect(8, 8, 34, 34);
 
-        if(type === 0) { // PHOTON (Green)
+        if(type === 0) { // PHOTON
             ctx.fillStyle = '#00FF85';
             ctx.fillRect(20, 15, 10, 20); ctx.fillRect(15, 25, 20, 15);
             if(lvl>1) { ctx.fillStyle='#CCFF00'; ctx.fillRect(22, 10, 6, 5); }
-        } else if(type === 1) { // IONIC (Blue)
+        } else if(type === 1) { // IONIC
             ctx.fillStyle = '#00D4FF';
             ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI*2); ctx.fill();
             ctx.fillStyle = '#fff'; ctx.fillRect(cx-2, cy-2, 4, 4);
             if(lvl>1) { ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke(); }
-        } else if(type === 2) { // DETOX (Magenta)
+        } else if(type === 2) { // DETOX
             ctx.fillStyle = '#FF00D4';
             ctx.fillRect(10, 10, 10, 30); ctx.fillRect(30, 10, 10, 30);
             ctx.fillStyle = '#550055'; ctx.fillRect(15, 30, 20, 5);
-        } else if(type === 3) { // VOLT (Purple)
+        } else if(type === 3) { // VOLT
             ctx.fillStyle = '#9D00FF';
             ctx.beginPath(); ctx.moveTo(cx, 5); ctx.lineTo(45, 45); ctx.lineTo(5, 45); ctx.fill();
             ctx.fillStyle = '#E0B0FF'; ctx.beginPath(); ctx.arc(cx, 35, 6, 0, Math.PI*2); ctx.fill();
@@ -398,7 +860,6 @@ const Gfx = {
     getEnemy(type) {
         const key = `e_${type}`;
         if(this.cache[key]) return this.cache[key];
-        
         const c = this.createCanvas(30, 30);
         const ctx = c.getContext('2d');
         
@@ -451,7 +912,6 @@ const LEVELS = {
         path: [[0,0], [5,0], [5,2], [1,2], [1,4], [4,4], [4,6], [0,6], [0,8], [11,8], [11,6], [8,6], [8,2], [14,2]]
     },
     lab: {
-        // Redesigned Snake Pattern (Guaranteed Path)
         grid: [
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
             [0,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
@@ -480,27 +940,57 @@ class Game {
         this.costs = [50, 120, 200, 350];
         this.mouse = { c: -1, r: -1, x: 0, y: 0 };
         this.selectedTower = null;
+        this.difficulty = 1; 
+        this.selectedBiome = 'jungle';
 
-        this.canvas.addEventListener('mousemove', e => this.handleMouse(e));
-        this.canvas.addEventListener('mousedown', e => this.handleClick(e));
+        // Listeners
+        const getPos = (e) => {
+            const r = this.canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - r.left, y: clientY - r.top, w: r.width, h: r.height };
+        };
+
+        const updateInput = (e) => {
+            e.preventDefault(); 
+            const pos = getPos(e);
+            const scaleX = 750 / pos.w;
+            const scaleY = 500 / pos.h;
+            this.mouse.x = pos.x * scaleX;
+            this.mouse.y = pos.y * scaleY;
+            this.mouse.c = Math.floor(this.mouse.x / TILE);
+            this.mouse.r = Math.floor(this.mouse.y / TILE);
+        };
+
+        this.canvas.addEventListener('mousemove', updateInput);
+        this.canvas.addEventListener('mousedown', (e) => { updateInput(e); this.handleClick(); });
+        this.canvas.addEventListener('touchstart', (e) => { updateInput(e); this.handleClick(); }, {passive: false});
+
         document.getElementById('btn-upgrade').onclick = () => this.actionUpgrade();
         document.getElementById('btn-sell').onclick = () => this.actionSell();
 
-        // Render Previews
+        // Button Click Sound
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => AudioSys.sfx('ui_click'));
+        });
+
+        // Previews
         for(let i=0; i<4; i++) {
             const pc = document.getElementById(`prev-${i}`).getContext('2d');
             pc.drawImage(Gfx.getTower(i), 0, 0, 30, 30);
         }
     }
 
-    init(biome) {
-        this.biome = biome;
-        this.level = LEVELS[biome];
+    init() {
+        this.level = LEVELS[this.selectedBiome];
         this.renderBackground();
         
+        const startMoney = [200, 150, 100][this.difficulty];
+        const startLives = [30, 20, 10][this.difficulty];
+
         this.state = {
-            money: 150,
-            lives: 20,
+            money: startMoney,
+            lives: startLives,
             wave: 1,
             speed: 1,
             enemies: [],
@@ -514,6 +1004,7 @@ class Game {
             paused: false
         };
         this.updateUI();
+        AudioSys.setMode('game');
         this.loop();
     }
 
@@ -523,21 +1014,19 @@ class Game {
             jungle: { bg: '#021005', path: '#024A3F' },
             swamp: { bg: '#0b100b', path: '#203a20' },
             lab: { bg: '#0a0a0a', path: '#222' }
-        }[this.biome];
+        }[this.selectedBiome];
 
         ctx.fillStyle = theme.bg;
         ctx.fillRect(0, 0, 750, 500);
 
-        // Grid Lines
         ctx.strokeStyle = '#111';
         ctx.lineWidth = 1;
         for(let x=0; x<=750; x+=TILE) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,500); ctx.stroke(); }
         for(let y=0; y<=500; y+=TILE) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(750,y); ctx.stroke(); }
 
-        // Path
         ctx.fillStyle = theme.path;
         ctx.shadowBlur = 10;
-        ctx.shadowColor = this.biome === 'lab' ? '#00D4FF' : '#00FF85';
+        ctx.shadowColor = this.selectedBiome === 'lab' ? '#00D4FF' : '#00FF85';
         
         for(let r=0; r<10; r++) {
             for(let c=0; c<15; c++) {
@@ -551,30 +1040,18 @@ class Game {
         ctx.shadowBlur = 0;
     }
 
-    handleMouse(e) {
-        const rect = this.canvas.getBoundingClientRect();
-        const scaleX = this.canvas.width / rect.width;
-        const scaleY = this.canvas.height / rect.height;
-        this.mouse.x = (e.clientX - rect.left) * scaleX;
-        this.mouse.y = (e.clientY - rect.top) * scaleY;
-        this.mouse.c = Math.floor(this.mouse.x / TILE);
-        this.mouse.r = Math.floor(this.mouse.y / TILE);
-    }
-
-    handleClick(e) {
+    handleClick() {
         if(this.state.paused) return;
         if(this.mouse.c < 0 || this.mouse.c >= 15 || this.mouse.r < 0 || this.mouse.r >= 10) return;
 
-        // Click existing tower
         const existing = this.state.towers.find(t => t.c === this.mouse.c && t.r === this.mouse.r);
         if(existing) {
             this.openMenu(existing);
-            this.state.selectedTowerType = null; // Clear build
+            this.state.selectedTowerType = null;
             this.updateSelection();
             return;
         }
 
-        // Place new tower
         if(this.state.selectedTowerType !== null) {
             this.closeMenu();
             if(this.level.grid[this.mouse.r][this.mouse.c] === 1) { AudioSys.sfx('error'); return; }
@@ -585,7 +1062,6 @@ class Game {
                 this.state.towers.push(new Tower(this.mouse.c, this.mouse.r, this.state.selectedTowerType));
                 AudioSys.sfx('build');
                 this.updateUI();
-                // FIX: Single-shot placement only. Reset selection.
                 this.state.selectedTowerType = null; 
                 this.updateSelection();
             } else {
@@ -597,13 +1073,11 @@ class Game {
     }
 
     selectTowerType(type) {
-        // Toggle off if same type is clicked or if already selected
         if (this.state.selectedTowerType === type) {
             this.state.selectedTowerType = null;
             this.updateSelection();
             return;
         }
-
         if(this.state.money >= this.costs[type]) {
             this.state.selectedTowerType = type;
             this.closeMenu();
@@ -624,7 +1098,7 @@ class Game {
     startWave() {
         if(this.state.activeWave) return;
         this.state.activeWave = true;
-        this.state.spawnQueue = 5 + Math.floor(this.state.wave * 2.5);
+        this.state.spawnQueue = 5 + Math.floor(this.state.wave * ([0.8, 1, 1.2][this.difficulty]));
         document.getElementById('btn-next-wave').style.opacity = '0.5';
     }
 
@@ -640,22 +1114,28 @@ class Game {
         else screen.classList.add('hidden');
     }
 
-    // --- MENU LOGIC ---
     openMenu(tower) {
         this.selectedTower = tower;
         const menu = document.getElementById('upgrade-menu');
         
         let mx = (tower.c * TILE) + TILE + 5;
         let my = (tower.r * TILE) - 5;
-        if(mx + 120 > 750) mx = (tower.c * TILE) - 125;
-        if(my + 100 > 500) my = 500 - 100;
+        if(mx + 140 > 750) mx = (tower.c * TILE) - 145;
+        if(my + 140 > 500) my = 500 - 140;
 
         menu.style.left = mx + 'px';
         menu.style.top = my + 'px';
         menu.style.display = 'flex';
 
-        document.getElementById('tower-level').innerText = tower.level;
-        
+        // Update Stats
+        const dmg = Math.floor(tower.damage);
+        const rng = Math.floor(tower.range);
+        const spd = Math.floor(3000 / (tower.maxCd * 16)); 
+
+        document.getElementById('stat-dmg').innerText = dmg;
+        document.getElementById('stat-rng').innerText = rng;
+        document.getElementById('stat-spd').innerText = spd;
+
         const upCost = tower.getUpgradeCost();
         const sellPrice = tower.getSellValue();
         const btnUp = document.getElementById('btn-upgrade');
@@ -683,7 +1163,7 @@ class Game {
             this.state.money -= cost;
             this.selectedTower.upgrade();
             AudioSys.sfx('build');
-            this.closeMenu();
+            this.openMenu(this.selectedTower); 
             this.updateUI();
         }
     }
@@ -697,15 +1177,8 @@ class Game {
         this.updateUI();
     }
 
-    // --- MAIN LOOP ---
     loop() {
-        if(this.state.paused) { 
-            // Draw one frame to ensure UI overlay is visible, then stop logic
-            // But we actually just skip update and keep requestAnimationFrame alive
-            requestAnimationFrame(()=>this.loop()); 
-            return; 
-        }
-
+        if(this.state.paused) { requestAnimationFrame(()=>this.loop()); return; }
         this.update();
         this.draw();
         requestAnimationFrame(()=>this.loop());
@@ -713,8 +1186,6 @@ class Game {
 
     update() {
         for(let s=0; s<this.state.speed; s++) {
-            
-            // Spawning
             if(this.state.activeWave && this.state.spawnQueue > 0) {
                 this.state.spawnTimer++;
                 if(this.state.spawnTimer > 40) {
@@ -722,7 +1193,7 @@ class Game {
                     if(this.state.wave > 3 && Math.random() < 0.3) type = 1;
                     if(this.state.wave > 5 && Math.random() < 0.2) type = 2;
                     
-                    this.state.enemies.push(new Enemy(this.level.path, type, this.state.wave));
+                    this.state.enemies.push(new Enemy(this.level.path, type, this.state.wave, this.difficulty));
                     this.state.spawnQueue--;
                     this.state.spawnTimer = 0;
                 }
@@ -766,6 +1237,7 @@ class Game {
         this.state.projectiles.forEach(p => p.draw(this.ctx));
         this.state.particles.forEach(p => p.draw(this.ctx));
 
+        // Placement Preview
         if(this.state.selectedTowerType !== null && this.mouse.c >= 0) {
             const tx = this.mouse.c * TILE;
             const ty = this.mouse.r * TILE;
@@ -789,7 +1261,6 @@ class Game {
             this.ctx.strokeStyle = '#fff';
             this.ctx.lineWidth = 2;
             this.ctx.strokeRect(this.selectedTower.c * TILE, this.selectedTower.r * TILE, TILE, TILE);
-            
             this.ctx.beginPath();
             this.ctx.arc(this.selectedTower.x, this.selectedTower.y, this.selectedTower.range, 0, Math.PI*2);
             this.ctx.strokeStyle = 'rgba(255,255,255,0.2)';
@@ -804,7 +1275,6 @@ class Game {
         
         for(let i=0; i<4; i++) {
             const btn = document.getElementById(`btn-tower-${i}`);
-            // If already selected, keep enabled so we can deselect it
             if(i !== this.state.selectedTowerType) {
                 if(this.state.money < this.costs[i]) btn.disabled = true;
                 else btn.disabled = false;
@@ -818,6 +1288,15 @@ class Game {
         this.state.paused = true;
         document.getElementById('game-over-screen').classList.remove('hidden');
         document.getElementById('final-wave').innerText = this.state.wave;
+
+        // Check High Score
+        if (Leaderboard.isHighScore(this.state.wave)) {
+            document.getElementById('high-score-form').classList.remove('hidden');
+            document.getElementById('btn-reboot').classList.add('hidden');
+        } else {
+            document.getElementById('high-score-form').classList.add('hidden');
+            document.getElementById('btn-reboot').classList.remove('hidden');
+        }
     }
 }
 
@@ -872,7 +1351,6 @@ class Tower {
 
             let target = null;
             let maxProgress = -1;
-            
             for(const e of enemies) {
                 const dist = Math.hypot(e.x - this.x, e.y - this.y);
                 if(dist <= this.range && e.pathIdx > maxProgress) {
@@ -880,7 +1358,6 @@ class Tower {
                     maxProgress = e.pathIdx;
                 }
             }
-            
             if(target) {
                 this.cd = this.maxCd;
                 projs.push(new Projectile(this.x, this.y, target, this.damage, this.type));
@@ -891,11 +1368,15 @@ class Tower {
     
     draw(ctx) {
         ctx.drawImage(Gfx.getTower(this.type, this.level), this.c * TILE, this.r * TILE);
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = ['#00FF85','#00D4FF','#FF00D4','#9D00FF'][this.type];
+        ctx.beginPath(); ctx.arc(this.x, this.y, 4, 0, Math.PI*2); ctx.fillStyle="#fff"; ctx.fill();
+        ctx.shadowBlur = 0;
     }
 }
 
 class Enemy {
-    constructor(path, type, wave) {
+    constructor(path, type, wave, difficulty) {
         this.path = path;
         this.pathIdx = 0;
         this.type = type;
@@ -905,7 +1386,9 @@ class Enemy {
         this.x = this.targetX;
         this.y = this.targetY;
         
-        const mult = 1 + (wave * 0.2);
+        const diffMult = [0.8, 1, 1.3][difficulty];
+        const mult = (1 + (wave * 0.2)) * diffMult;
+        
         if(type === 0) { this.hp = 20 * mult; this.spd = 2.0; this.bounty = 5; }
         else if(type === 1) { this.hp = 12 * mult; this.spd = 3.5; this.bounty = 8; }
         else { this.hp = 60 * mult; this.spd = 1.0; this.bounty = 15; }
@@ -914,10 +1397,12 @@ class Enemy {
         this.dead = false;
         this.finished = false;
         this.frozen = 0;
+        this.hitFlash = 0;
     }
     
     update() {
         if(this.frozen > 0) this.frozen--;
+        if(this.hitFlash > 0) this.hitFlash--;
         
         const wayPt = this.path[this.pathIdx];
         const tx = wayPt[0] * TILE + TILE/2;
@@ -942,12 +1427,19 @@ class Enemy {
     
     takeDamage(amt, type) {
         this.hp -= amt;
+        this.hitFlash = 3;
         if(this.hp <= 0) { this.hp = 0; this.dead = true; AudioSys.sfx('hit'); }
         if(type === 2) this.frozen = 30;
     }
     
     draw(ctx) {
-        ctx.drawImage(Gfx.getEnemy(this.type), this.x - 15, this.y - 15);
+        if(this.hitFlash > 0) {
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(this.x-15, this.y-15, 30, 30);
+        } else {
+            ctx.drawImage(Gfx.getEnemy(this.type), this.x - 15, this.y - 15);
+        }
         const pct = this.hp / this.maxHp;
         ctx.fillStyle = 'red'; ctx.fillRect(this.x - 12, this.y - 20, 24, 4);
         ctx.fillStyle = '#0f0'; ctx.fillRect(this.x - 12, this.y - 20, 24 * pct, 4);
@@ -961,10 +1453,8 @@ class Projectile {
         this.spd = 12;
         this.active = true;
     }
-    
     update() {
         if(!this.target || this.target.dead) { this.active = false; return; }
-        
         const dx = this.target.x - this.x;
         const dy = this.target.y - this.y;
         const dist = Math.hypot(dx, dy);
@@ -978,7 +1468,6 @@ class Projectile {
             this.y += (dy/dist) * this.spd;
         }
     }
-    
     draw(ctx) {
         ctx.fillStyle = ['#0f0', '#0ff', '#f0f'][this.type] || '#fff';
         ctx.beginPath(); ctx.arc(this.x, this.y, 4, 0, Math.PI*2); ctx.fill();
@@ -1027,30 +1516,88 @@ const LobbyAnim = {
         this.animate();
     },
     animate() {
-        if(!document.getElementById('start-screen').classList.contains('hidden')) {
-            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            this.ctx.fillStyle = '#0F0';
-            this.ctx.font = '15px monospace';
-            for(let i=0; i<this.drops.length; i++) {
-                const text = String.fromCharCode(0x30A0 + Math.random() * 96);
-                this.ctx.fillText(text, i*20, this.drops[i]*20);
-                if(this.drops[i]*20 > this.canvas.height && Math.random() > 0.975) this.drops[i] = 0;
-                this.drops[i]++;
-            }
-            requestAnimationFrame(()=>this.animate());
+        // UPDATED: Removed check for hidden start-screen so it animates immediately
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillStyle = '#0F0';
+        this.ctx.font = '15px monospace';
+        for(let i=0; i<this.drops.length; i++) {
+            const text = String.fromCharCode(0x30A0 + Math.random() * 96);
+            this.ctx.fillText(text, i*20, this.drops[i]*20);
+            if(this.drops[i]*20 > this.canvas.height && Math.random() > 0.975) this.drops[i] = 0;
+            this.drops[i]++;
         }
+        requestAnimationFrame(()=>this.animate());
     }
 };
 
 const game = new Game();
 LobbyAnim.init();
 
-window.startGame = function(biome) {
-    AudioSys.init();
-    game.init(biome);
-    document.getElementById('start-screen').classList.add('hidden');
+// --- LOBBY FUNCTIONS ---
+window.selectBiome = function(b) {
+    game.selectedBiome = b;
+    document.querySelectorAll('.biome-card').forEach(el => el.classList.remove('active'));
+    document.getElementById(`biome-${b}`).classList.add('active');
+    AudioSys.sfx('ui_click');
 }
+window.setDiff = function(d) {
+    game.difficulty = d;
+    document.querySelectorAll('.diff-btn').forEach(el => el.classList.remove('selected'));
+    document.getElementById(`diff-${d}`).classList.add('selected');
+    AudioSys.sfx('ui_click');
+}
+window.startGame = function() {
+    AudioSys.init();
+    game.init();
+    
+    // REVEAL GAME UI
+    document.getElementById('ui-top').classList.remove('hidden');
+    document.getElementById('game-wrapper').classList.remove('hidden');
+    document.getElementById('ui-bottom').classList.remove('hidden');
+
+    document.getElementById('start-screen').classList.remove('visible');
+    // Wait for fade transition before hiding
+    setTimeout(() => {
+        document.getElementById('start-screen').classList.add('hidden');
+    }, 500); 
+    AudioSys.sfx('ui_click');
+}
+
+// --- SPLASH SCREEN LOGIC ---
+window.onload = function() {
+    LobbyAnim.canvas.width = window.innerWidth;
+    LobbyAnim.canvas.height = window.innerHeight;
+    
+    const splash = document.getElementById('splash-screen');
+    const lobby = document.getElementById('start-screen');
+    const header = document.getElementById('sys-header');
+    
+    // Play splash video if policies allow
+    const vids = document.querySelectorAll('video');
+    vids.forEach(v => v.play().catch(e => console.log('Autoplay blocked')));
+
+    const handleStart = () => {
+        splash.removeEventListener('click', handleStart);
+        AudioSys.playCling(); // Play sound
+        
+        splash.classList.add('fade-out'); // Start 2.5s fade
+        
+        // After fade out completes
+        setTimeout(() => {
+            splash.classList.add('hidden');
+            // Reveal Lobby & Header
+            lobby.classList.add('visible');
+            header.classList.add('visible');
+            
+            // START LOBBY MUSIC
+            AudioSys.setMode('lobby');
+            AudioSys.startMusic();
+        }, 2500);
+    };
+
+    splash.addEventListener('click', handleStart);
+};
 
 window.addEventListener('resize', () => {
     LobbyAnim.canvas.width = window.innerWidth;
