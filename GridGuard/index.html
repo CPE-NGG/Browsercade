@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GridGuard: The Overgrowth</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        :root {
+            --neon-green: #00FF85;
+            --toxic-yellow: #CCFF00;
+            --acid-lime: #7CFF4E;
+            --dark-jungle: #024A3F;
+            --contrast-magenta: #FF00D4;
+            --contrast-blue: #00D4FF;
+            --contrast-orange: #FF7A00;
+            --deep-purple: #9D00FF;
+            --bg-color: #050505;
+            --panel-bg: #0a0a0a;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--neon-green);
+            font-family: 'Press Start 2P', cursive;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* --- UI COMPONENTS --- */
+        .top-bar {
+            flex: 0 0 50px;
+            background: var(--panel-bg);
+            border-bottom: 3px solid var(--neon-green);
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 133, 0.2);
+            z-index: 10;
+        }
+
+        #game-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at center, #112211 0%, #000000 100%);
+            overflow: hidden;
+        }
+
+        #game-canvas-container {
+            position: relative;
+            box-shadow: 0 0 40px rgba(0, 255, 133, 0.1);
+            border: 4px solid #1a1a1a;
+            /* Adjust canvas container size */
+            width: 750px; 
+            max-width: 95%;
+            aspect-ratio: 3/2;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+
+        .bottom-bar {
+            flex: 0 0 110px;
+            background: var(--panel-bg);
+            border-top: 3px solid var(--neon-green);
+            padding: 10px 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        /* --- BUTTON STYLES --- */
+        .stats-group { display: flex; gap: 25px; align-items: center;}
+        .stat { display: flex; align-items: center; gap: 8px; color: #fff; text-shadow: 2px 2px 0 #000; }
+        .stat span { color: var(--toxic-yellow); }
+
+        button {
+            background: #111;
+            border: 2px solid #333;
+            color: #888;
+            font-family: 'Press Start 2P', cursive;
+            cursor: pointer;
+            transition: all 0.1s;
+            text-transform: uppercase;
+        }
+        
+        button:hover:not(:disabled) { filter: brightness(1.2); transform: translateY(-2px); }
+        button:active:not(:disabled) { transform: translateY(1px); }
+
+        .tower-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 85px;
+            height: 85px;
+            border-radius: 4px;
+            position: relative;
+            background: #0d0d0d;
+            border: 2px solid #333;
+        }
+
+        .tower-btn.selected {
+            background: #1a2a1a;
+            border-color: var(--neon-green);
+            box-shadow: 0 0 15px var(--neon-green);
+            color: #fff;
+            animation: pulse 1s infinite alternate;
+        }
+        @keyframes pulse { from { box-shadow: 0 0 10px var(--neon-green); } to { box-shadow: 0 0 20px var(--neon-green); } }
+
+        .tower-preview {
+            width: 30px; 
+            height: 30px;
+            image-rendering: pixelated;
+        }
+
+        .tower-cost { font-size: 8px; margin-top: 4px; color: var(--toxic-yellow); }
+        .tower-name { font-size: 7px; color: #aaa; }
+        
+        .tower-btn:disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
+
+        .action-btn {
+            height: 60px;
+            padding: 0 20px;
+            font-size: 10px;
+            border: 2px solid var(--contrast-orange);
+            color: var(--contrast-orange);
+            background: rgba(255, 122, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+        }
+        .action-btn:hover { background: var(--contrast-orange); color: #000; }
+
+        .speed-btn {
+            height: 40px; width: 40px;
+            border: 2px solid var(--contrast-blue);
+            color: var(--contrast-blue);
+            font-size: 12px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* --- UPGRADE MENU (Floating) --- */
+        #upgrade-menu {
+            position: absolute;
+            background: rgba(0, 10, 5, 0.95);
+            border: 2px solid var(--contrast-blue);
+            box-shadow: 0 0 15px var(--contrast-blue);
+            padding: 8px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+            width: 120px;
+        }
+        #upgrade-menu button {
+            width: 100%; padding: 8px; font-size: 8px; border: 1px solid #444; color: #fff;
+        }
+        
+        /* --- MODALS --- */
+        .modal-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            text-align: center;
+        }
+        .hidden { display: none !important; }
+
+        /* Animated Background for Lobby */
+        #lobby-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        .biome-select { display: flex; gap: 15px; margin-top: 20px; }
+        .biome-card {
+            width: 100px; height: 120px;
+            border: 2px solid #555;
+            background: #111;
+            display: flex; flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+            gap: 10px;
+        }
+        .biome-card:hover { border-color: var(--neon-green); transform: scale(1.05); background: #051505; }
+        .biome-icon { width: 40px; height: 40px; background: #333; }
+        
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <div class="stats-group">
+        <div class="stat">HP <span id="lives-display">20</span></div>
+        <div class="stat">CASH <span id="money-display">100</span></div>
+        <div class="stat">WAVE <span id="wave-display">1</span></div>
+    </div>
+    <div style="display:flex; gap:10px;">
+        <button class="speed-btn" id="btn-speed" onclick="game.toggleSpeed()">1x</button>
+        <button id="btn-pause" onclick="game.togglePause()" style="padding: 5px 15px; font-size: 10px; border-color: var(--contrast-magenta); color:var(--contrast-magenta)">PAUSE</button>
+    </div>
+</div>
+
+<div id="game-wrapper">
+    <div id="game-canvas-container">
+        <canvas id="gameCanvas" width="750" height="500"></canvas>
+        
+        <!-- Floating Menu -->
+        <div id="upgrade-menu">
+            <div style="font-size:8px; text-align:center; color:var(--contrast-blue); margin-bottom:2px;">LVL <span id="tower-level">1</span></div>
+            <button id="btn-upgrade" style="border-color:var(--toxic-yellow); color:var(--toxic-yellow)">UPGRADE <span id="upgrade-cost"></span></button>
+            <button id="btn-sell" style="border-color:var(--contrast-magenta); color:var(--contrast-magenta)">SELL <span id="sell-cost"></span></button>
+            <button onclick="game.closeMenu()" style="border:none; background:none; color:#555;">CANCEL</button>
+        </div>
+    </div>
+</div>
+
+<div class="bottom-bar">
+    <button class="tower-btn" id="btn-tower-0" onclick="game.selectTowerType(0)">
+        <canvas class="tower-preview" id="prev-0" width="30" height="30"></canvas>
+        <span class="tower-name">PHOTON</span>
+        <span class="tower-cost">$50</span>
+    </button>
+    <button class="tower-btn" id="btn-tower-1" onclick="game.selectTowerType(1)">
+        <canvas class="tower-preview" id="prev-1" width="30" height="30"></canvas>
+        <span class="tower-name">IONIC</span>
+        <span class="tower-cost">$120</span>
+    </button>
+    <button class="tower-btn" id="btn-tower-2" onclick="game.selectTowerType(2)">
+        <canvas class="tower-preview" id="prev-2" width="30" height="30"></canvas>
+        <span class="tower-name">DETOX</span>
+        <span class="tower-cost">$200</span>
+    </button>
+    <button class="tower-btn" id="btn-tower-3" onclick="game.selectTowerType(3)">
+        <canvas class="tower-preview" id="prev-3" width="30" height="30"></canvas>
+        <span class="tower-name">VOLT</span>
+        <span class="tower-cost">$350</span>
+    </button>
+
+    <div style="flex-grow:1;"></div>
+
+    <button class="action-btn" id="btn-next-wave" onclick="game.startWave()">
+        <span>DEPLOY</span>
+        <span>WAVE</span>
+    </button>
+</div>
+
+<!-- START SCREEN -->
+<div id="start-screen" class="modal-screen">
+    <canvas id="lobby-bg"></canvas> <!-- Animated Matrix Rain -->
+    <h1 style="font-size:50px; color:var(--neon-green); text-shadow: 0 0 30px var(--neon-green); margin-bottom:10px;">GRIDGUARD</h1>
+    <div style="color:var(--toxic-yellow); font-size:12px; margin-bottom:40px; letter-spacing: 2px;">TACTICAL DEFENSE PROTOCOL</div>
+    
+    <p style="color:#fff; font-size:10px; margin-bottom:15px;">SELECT OPERATION ZONE</p>
+    <div class="biome-select">
+        <div class="biome-card" onclick="startGame('jungle')" style="border-color:var(--neon-green)">
+            <div class="biome-icon" style="background:#024A3F"></div>
+            <div style="font-size:8px; color:var(--neon-green)">NEON<br>JUNGLE</div>
+        </div>
+        <div class="biome-card" onclick="startGame('swamp')" style="border-color:var(--toxic-yellow)">
+            <div class="biome-icon" style="background:#203a20"></div>
+            <div style="font-size:8px; color:var(--toxic-yellow)">ACID<br>SWAMP</div>
+        </div>
+        <div class="biome-card" onclick="startGame('lab')" style="border-color:var(--contrast-blue)">
+            <div class="biome-icon" style="background:#333"></div>
+            <div style="font-size:8px; color:var(--contrast-blue)">BIO<br>LAB</div>
+        </div>
+    </div>
+</div>
+
+<!-- PAUSE SCREEN (Added) -->
+<div id="pause-screen" class="modal-screen hidden">
+    <h1 style="color:var(--contrast-magenta); margin-bottom:20px;">SYSTEM PAUSED</h1>
+    <div style="display:flex; gap:20px; flex-direction:column;">
+        <button onclick="game.togglePause()" style="padding:15px; width:200px; color:var(--neon-green); border-color:var(--neon-green)">RESUME</button>
+        <button onclick="location.reload()" style="padding:15px; width:200px; color:var(--contrast-orange); border-color:var(--contrast-orange)">ABORT MISSION</button>
+    </div>
+</div>
+
+<div id="game-over-screen" class="modal-screen hidden">
+    <h1 style="color:var(--contrast-magenta); font-size:40px;">BREACH DETECTED</h1>
+    <p style="margin:20px 0;">SYSTEM CRITICAL</p>
+    <p>WAVES SURVIVED: <span id="final-wave" style="color:var(--neon-green)">0</span></p>
+    <button onclick="location.reload()" style="padding:15px 30px; margin-top:30px; border-color:var(--neon-green); color:var(--neon-green);">REBOOT SYSTEM</button>
+</div>
+
+<script>
+/**
+ * GRIDGUARD v4.0
+ * Fixes: Single-Shot Placement, Pause Menu, Lab Pathing
+ */
+
+// --- AUDIO SYSTEM ---
+const AudioSys = {
+    ctx: null,
+    init() {
+        if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    },
+    playTone(freq, type, dur, vol=0.1) {
+        if(!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + dur);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + dur);
+    },
+    sfx(name) {
+        if(name === 'shoot_0') this.playTone(800, 'square', 0.1, 0.05);
+        if(name === 'shoot_1') this.playTone(300, 'sine', 0.2, 0.1);
+        if(name === 'shoot_2') this.playTone(150, 'sawtooth', 0.3, 0.08);
+        if(name === 'shoot_3') { this.playTone(600, 'triangle', 0.1, 0.05); setTimeout(()=>this.playTone(400,'triangle',0.2,0.05), 50); }
+        if(name === 'hit') this.playTone(100, 'sawtooth', 0.1, 0.05);
+        if(name === 'build') { this.playTone(440, 'square', 0.1, 0.1); setTimeout(()=>this.playTone(880, 'square', 0.1, 0.1), 100); }
+        if(name === 'error') { this.playTone(150, 'sawtooth', 0.2, 0.1); setTimeout(()=>this.playTone(100, 'sawtooth', 0.2, 0.1), 100); }
+    }
+};
+
+// --- GRAPHICS GENERATOR ---
+const TILE = 50; 
+const Gfx = {
+    cache: {},
+    createCanvas(w, h) { 
+        const c = document.createElement('canvas'); 
+        c.width = w; c.height = h; 
+        return c; 
+    },
+    getTower(type, lvl=1) {
+        const key = `t_${type}_${lvl}`;
+        if(this.cache[key]) return this.cache[key];
+        
+        const c = this.createCanvas(TILE, TILE);
+        const ctx = c.getContext('2d');
+        const cx = TILE/2, cy = TILE/2;
+        
+        ctx.fillStyle = '#111'; ctx.fillRect(5, 5, 40, 40);
+        ctx.fillStyle = '#0a2a20'; ctx.fillRect(8, 8, 34, 34);
+
+        if(type === 0) { // PHOTON (Green)
+            ctx.fillStyle = '#00FF85';
+            ctx.fillRect(20, 15, 10, 20); ctx.fillRect(15, 25, 20, 15);
+            if(lvl>1) { ctx.fillStyle='#CCFF00'; ctx.fillRect(22, 10, 6, 5); }
+        } else if(type === 1) { // IONIC (Blue)
+            ctx.fillStyle = '#00D4FF';
+            ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.fillRect(cx-2, cy-2, 4, 4);
+            if(lvl>1) { ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke(); }
+        } else if(type === 2) { // DETOX (Magenta)
+            ctx.fillStyle = '#FF00D4';
+            ctx.fillRect(10, 10, 10, 30); ctx.fillRect(30, 10, 10, 30);
+            ctx.fillStyle = '#550055'; ctx.fillRect(15, 30, 20, 5);
+        } else if(type === 3) { // VOLT (Purple)
+            ctx.fillStyle = '#9D00FF';
+            ctx.beginPath(); ctx.moveTo(cx, 5); ctx.lineTo(45, 45); ctx.lineTo(5, 45); ctx.fill();
+            ctx.fillStyle = '#E0B0FF'; ctx.beginPath(); ctx.arc(cx, 35, 6, 0, Math.PI*2); ctx.fill();
+        }
+        
+        ctx.fillStyle = '#FFFF00';
+        for(let i=0; i<lvl; i++) ctx.fillRect(10 + (i*6), 42, 4, 4);
+        
+        this.cache[key] = c;
+        return c;
+    },
+    getEnemy(type) {
+        const key = `e_${type}`;
+        if(this.cache[key]) return this.cache[key];
+        
+        const c = this.createCanvas(30, 30);
+        const ctx = c.getContext('2d');
+        
+        if(type === 0) { 
+            ctx.fillStyle = '#00FF85'; ctx.fillRect(5, 5, 20, 20);
+            ctx.fillStyle = '#000'; ctx.fillRect(8, 10, 4, 4); ctx.fillRect(18, 10, 4, 4);
+        } else if(type === 1) { 
+            ctx.fillStyle = '#FF00D4'; 
+            ctx.beginPath(); ctx.moveTo(15, 0); ctx.lineTo(30, 15); ctx.lineTo(15, 30); ctx.lineTo(0, 15); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.fillRect(13, 13, 4, 4);
+        } else if(type === 2) { 
+            ctx.fillStyle = '#FF7A00'; ctx.fillRect(0, 0, 30, 30);
+            ctx.strokeStyle = '#552200'; ctx.lineWidth = 4; ctx.strokeRect(2, 2, 26, 26);
+        }
+        this.cache[key] = c;
+        return c;
+    }
+};
+
+// --- MAP DATA ---
+const LEVELS = {
+    jungle: {
+        grid: [
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,1,0,0,0,1,1,1,1,1,0,0,0],
+            [0,0,0,1,1,1,0,1,0,0,0,1,0,0,0],
+            [0,0,0,0,0,1,0,1,0,0,0,1,1,1,1],
+            [0,0,0,0,0,1,1,1,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        ],
+        path: [[0,1], [3,1], [3,3], [5,3], [5,5], [7,5], [7,2], [11,2], [11,4], [14,4]]
+    },
+    swamp: {
+        grid: [
+            [1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,1,0,0,0,0,0,0,0,0,0],
+            [0,1,1,1,1,1,0,0,1,1,1,1,1,1,1],
+            [0,1,0,0,0,0,0,0,1,0,0,0,0,0,0],
+            [0,1,1,1,1,0,0,0,1,0,0,0,0,0,0],
+            [0,0,0,0,1,0,0,0,1,0,0,0,0,0,0],
+            [1,1,1,1,1,0,0,0,1,1,1,1,0,0,0],
+            [1,0,0,0,0,0,0,0,0,0,0,1,0,0,0],
+            [1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        ],
+        path: [[0,0], [5,0], [5,2], [1,2], [1,4], [4,4], [4,6], [0,6], [0,8], [11,8], [11,6], [8,6], [8,2], [14,2]]
+    },
+    lab: {
+        // Redesigned Snake Pattern (Guaranteed Path)
+        grid: [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        ],
+        path: [
+            [0,0], [13,0], [13,2], [0,2], [0,4], [13,4], [13,6], [0,6], [0,8], [14,8]
+        ]
+    }
+};
+
+// --- GAME LOGIC ---
+class Game {
+    constructor() {
+        this.canvas = document.getElementById('gameCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.bgCanvas = Gfx.createCanvas(750, 500);
+        
+        this.costs = [50, 120, 200, 350];
+        this.mouse = { c: -1, r: -1, x: 0, y: 0 };
+        this.selectedTower = null;
+
+        this.canvas.addEventListener('mousemove', e => this.handleMouse(e));
+        this.canvas.addEventListener('mousedown', e => this.handleClick(e));
+        document.getElementById('btn-upgrade').onclick = () => this.actionUpgrade();
+        document.getElementById('btn-sell').onclick = () => this.actionSell();
+
+        // Render Previews
+        for(let i=0; i<4; i++) {
+            const pc = document.getElementById(`prev-${i}`).getContext('2d');
+            pc.drawImage(Gfx.getTower(i), 0, 0, 30, 30);
+        }
+    }
+
+    init(biome) {
+        this.biome = biome;
+        this.level = LEVELS[biome];
+        this.renderBackground();
+        
+        this.state = {
+            money: 150,
+            lives: 20,
+            wave: 1,
+            speed: 1,
+            enemies: [],
+            towers: [],
+            projectiles: [],
+            particles: [],
+            activeWave: false,
+            spawnQueue: 0,
+            spawnTimer: 0,
+            selectedTowerType: null,
+            paused: false
+        };
+        this.updateUI();
+        this.loop();
+    }
+
+    renderBackground() {
+        const ctx = this.bgCanvas.getContext('2d');
+        const theme = {
+            jungle: { bg: '#021005', path: '#024A3F' },
+            swamp: { bg: '#0b100b', path: '#203a20' },
+            lab: { bg: '#0a0a0a', path: '#222' }
+        }[this.biome];
+
+        ctx.fillStyle = theme.bg;
+        ctx.fillRect(0, 0, 750, 500);
+
+        // Grid Lines
+        ctx.strokeStyle = '#111';
+        ctx.lineWidth = 1;
+        for(let x=0; x<=750; x+=TILE) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,500); ctx.stroke(); }
+        for(let y=0; y<=500; y+=TILE) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(750,y); ctx.stroke(); }
+
+        // Path
+        ctx.fillStyle = theme.path;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = this.biome === 'lab' ? '#00D4FF' : '#00FF85';
+        
+        for(let r=0; r<10; r++) {
+            for(let c=0; c<15; c++) {
+                if(this.level.grid[r][c] === 1) {
+                    ctx.fillRect(c*TILE, r*TILE, TILE, TILE);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                    ctx.strokeRect(c*TILE, r*TILE, TILE, TILE);
+                }
+            }
+        }
+        ctx.shadowBlur = 0;
+    }
+
+    handleMouse(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        const scaleX = this.canvas.width / rect.width;
+        const scaleY = this.canvas.height / rect.height;
+        this.mouse.x = (e.clientX - rect.left) * scaleX;
+        this.mouse.y = (e.clientY - rect.top) * scaleY;
+        this.mouse.c = Math.floor(this.mouse.x / TILE);
+        this.mouse.r = Math.floor(this.mouse.y / TILE);
+    }
+
+    handleClick(e) {
+        if(this.state.paused) return;
+        if(this.mouse.c < 0 || this.mouse.c >= 15 || this.mouse.r < 0 || this.mouse.r >= 10) return;
+
+        // Click existing tower
+        const existing = this.state.towers.find(t => t.c === this.mouse.c && t.r === this.mouse.r);
+        if(existing) {
+            this.openMenu(existing);
+            this.state.selectedTowerType = null; // Clear build
+            this.updateSelection();
+            return;
+        }
+
+        // Place new tower
+        if(this.state.selectedTowerType !== null) {
+            this.closeMenu();
+            if(this.level.grid[this.mouse.r][this.mouse.c] === 1) { AudioSys.sfx('error'); return; }
+            
+            const cost = this.costs[this.state.selectedTowerType];
+            if(this.state.money >= cost) {
+                this.state.money -= cost;
+                this.state.towers.push(new Tower(this.mouse.c, this.mouse.r, this.state.selectedTowerType));
+                AudioSys.sfx('build');
+                this.updateUI();
+                // FIX: Single-shot placement only. Reset selection.
+                this.state.selectedTowerType = null; 
+                this.updateSelection();
+            } else {
+                AudioSys.sfx('error');
+            }
+        } else {
+            this.closeMenu();
+        }
+    }
+
+    selectTowerType(type) {
+        // Toggle off if same type is clicked or if already selected
+        if (this.state.selectedTowerType === type) {
+            this.state.selectedTowerType = null;
+            this.updateSelection();
+            return;
+        }
+
+        if(this.state.money >= this.costs[type]) {
+            this.state.selectedTowerType = type;
+            this.closeMenu();
+            this.updateSelection();
+        } else {
+            AudioSys.sfx('error');
+        }
+    }
+
+    updateSelection() {
+        for(let i=0; i<4; i++) {
+            const btn = document.getElementById(`btn-tower-${i}`);
+            if(i === this.state.selectedTowerType) btn.classList.add('selected');
+            else btn.classList.remove('selected');
+        }
+    }
+
+    startWave() {
+        if(this.state.activeWave) return;
+        this.state.activeWave = true;
+        this.state.spawnQueue = 5 + Math.floor(this.state.wave * 2.5);
+        document.getElementById('btn-next-wave').style.opacity = '0.5';
+    }
+
+    toggleSpeed() {
+        this.state.speed = this.state.speed === 1 ? 2 : 1;
+        document.getElementById('btn-speed').innerText = this.state.speed + 'x';
+    }
+
+    togglePause() {
+        this.state.paused = !this.state.paused;
+        const screen = document.getElementById('pause-screen');
+        if(this.state.paused) screen.classList.remove('hidden');
+        else screen.classList.add('hidden');
+    }
+
+    // --- MENU LOGIC ---
+    openMenu(tower) {
+        this.selectedTower = tower;
+        const menu = document.getElementById('upgrade-menu');
+        
+        let mx = (tower.c * TILE) + TILE + 5;
+        let my = (tower.r * TILE) - 5;
+        if(mx + 120 > 750) mx = (tower.c * TILE) - 125;
+        if(my + 100 > 500) my = 500 - 100;
+
+        menu.style.left = mx + 'px';
+        menu.style.top = my + 'px';
+        menu.style.display = 'flex';
+
+        document.getElementById('tower-level').innerText = tower.level;
+        
+        const upCost = tower.getUpgradeCost();
+        const sellPrice = tower.getSellValue();
+        const btnUp = document.getElementById('btn-upgrade');
+        
+        document.getElementById('sell-cost').innerText = '$' + sellPrice;
+        
+        if(tower.level >= 3) {
+            btnUp.innerText = "MAX";
+            btnUp.disabled = true;
+        } else {
+            btnUp.innerText = `UPGRADE $${upCost}`;
+            btnUp.disabled = this.state.money < upCost;
+        }
+    }
+
+    closeMenu() {
+        document.getElementById('upgrade-menu').style.display = 'none';
+        this.selectedTower = null;
+    }
+
+    actionUpgrade() {
+        if(!this.selectedTower) return;
+        const cost = this.selectedTower.getUpgradeCost();
+        if(this.state.money >= cost && this.selectedTower.level < 3) {
+            this.state.money -= cost;
+            this.selectedTower.upgrade();
+            AudioSys.sfx('build');
+            this.closeMenu();
+            this.updateUI();
+        }
+    }
+
+    actionSell() {
+        if(!this.selectedTower) return;
+        this.state.money += this.selectedTower.getSellValue();
+        this.state.towers = this.state.towers.filter(t => t !== this.selectedTower);
+        AudioSys.sfx('build');
+        this.closeMenu();
+        this.updateUI();
+    }
+
+    // --- MAIN LOOP ---
+    loop() {
+        if(this.state.paused) { 
+            // Draw one frame to ensure UI overlay is visible, then stop logic
+            // But we actually just skip update and keep requestAnimationFrame alive
+            requestAnimationFrame(()=>this.loop()); 
+            return; 
+        }
+
+        this.update();
+        this.draw();
+        requestAnimationFrame(()=>this.loop());
+    }
+
+    update() {
+        for(let s=0; s<this.state.speed; s++) {
+            
+            // Spawning
+            if(this.state.activeWave && this.state.spawnQueue > 0) {
+                this.state.spawnTimer++;
+                if(this.state.spawnTimer > 40) {
+                    let type = 0;
+                    if(this.state.wave > 3 && Math.random() < 0.3) type = 1;
+                    if(this.state.wave > 5 && Math.random() < 0.2) type = 2;
+                    
+                    this.state.enemies.push(new Enemy(this.level.path, type, this.state.wave));
+                    this.state.spawnQueue--;
+                    this.state.spawnTimer = 0;
+                }
+            } else if(this.state.activeWave && this.state.spawnQueue === 0 && this.state.enemies.length === 0) {
+                this.state.activeWave = false;
+                this.state.wave++;
+                this.state.money += 50 + (this.state.wave * 10);
+                this.updateUI();
+                document.getElementById('btn-next-wave').style.opacity = '1';
+            }
+
+            this.state.towers.forEach(t => t.update(this.state.enemies, this.state.projectiles));
+            this.state.projectiles.forEach(p => p.update());
+            this.state.projectiles = this.state.projectiles.filter(p => p.active);
+            
+            this.state.particles.forEach(p => p.update());
+            this.state.particles = this.state.particles.filter(p => p.life > 0);
+
+            for(let i = this.state.enemies.length-1; i>=0; i--) {
+                const e = this.state.enemies[i];
+                e.update();
+                if(e.finished) {
+                    this.state.lives--;
+                    this.state.enemies.splice(i, 1);
+                    AudioSys.sfx('error');
+                    this.updateUI();
+                    if(this.state.lives <= 0) this.gameOver();
+                } else if(e.dead) {
+                    this.state.money += e.bounty;
+                    this.state.enemies.splice(i, 1);
+                    this.updateUI();
+                }
+            }
+        }
+    }
+
+    draw() {
+        this.ctx.drawImage(this.bgCanvas, 0, 0);
+        this.state.towers.forEach(t => t.draw(this.ctx));
+        this.state.enemies.forEach(e => e.draw(this.ctx));
+        this.state.projectiles.forEach(p => p.draw(this.ctx));
+        this.state.particles.forEach(p => p.draw(this.ctx));
+
+        if(this.state.selectedTowerType !== null && this.mouse.c >= 0) {
+            const tx = this.mouse.c * TILE;
+            const ty = this.mouse.r * TILE;
+            const range = [150, 250, 120, 100][this.state.selectedTowerType];
+            
+            this.ctx.beginPath();
+            this.ctx.arc(tx + TILE/2, ty + TILE/2, range, 0, Math.PI*2);
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            this.ctx.fill();
+            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            this.ctx.setLineDash([5, 5]);
+            this.ctx.stroke();
+            this.ctx.setLineDash([]);
+
+            this.ctx.globalAlpha = 0.6;
+            this.ctx.drawImage(Gfx.getTower(this.state.selectedTowerType), tx, ty);
+            this.ctx.globalAlpha = 1.0;
+        }
+
+        if(this.selectedTower) {
+            this.ctx.strokeStyle = '#fff';
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeRect(this.selectedTower.c * TILE, this.selectedTower.r * TILE, TILE, TILE);
+            
+            this.ctx.beginPath();
+            this.ctx.arc(this.selectedTower.x, this.selectedTower.y, this.selectedTower.range, 0, Math.PI*2);
+            this.ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            this.ctx.stroke();
+        }
+    }
+
+    updateUI() {
+        document.getElementById('lives-display').innerText = this.state.lives;
+        document.getElementById('money-display').innerText = this.state.money;
+        document.getElementById('wave-display').innerText = this.state.wave;
+        
+        for(let i=0; i<4; i++) {
+            const btn = document.getElementById(`btn-tower-${i}`);
+            // If already selected, keep enabled so we can deselect it
+            if(i !== this.state.selectedTowerType) {
+                if(this.state.money < this.costs[i]) btn.disabled = true;
+                else btn.disabled = false;
+            } else {
+                btn.disabled = false; 
+            }
+        }
+    }
+
+    gameOver() {
+        this.state.paused = true;
+        document.getElementById('game-over-screen').classList.remove('hidden');
+        document.getElementById('final-wave').innerText = this.state.wave;
+    }
+}
+
+// --- ENTITIES ---
+class Tower {
+    constructor(c, r, type) {
+        this.c = c; this.r = r; this.type = type;
+        this.x = c * TILE + TILE/2; this.y = r * TILE + TILE/2;
+        this.level = 1; this.cd = 0;
+        
+        const stats = [
+            { r: 150, d: 10, s: 30 },
+            { r: 250, d: 40, s: 90 },
+            { r: 120, d: 2, s: 5 },
+            { r: 100, d: 30, s: 60 }
+        ][type];
+        
+        this.range = stats.r;
+        this.damage = stats.d;
+        this.maxCd = stats.s;
+        this.cost = [50, 120, 200, 350][type];
+    }
+    
+    getUpgradeCost() { return Math.floor(this.cost * 0.7 * this.level); }
+    getSellValue() { return Math.floor(this.cost * 0.5 * this.level); }
+    
+    upgrade() {
+        this.level++;
+        this.damage *= 1.3;
+        this.maxCd *= 0.9;
+        this.range *= 1.1;
+    }
+
+    update(enemies, projs) {
+        if(this.cd > 0) this.cd--;
+        if(this.cd <= 0) {
+            if(this.type === 3) {
+                let hit = false;
+                enemies.forEach(e => {
+                    if(Math.hypot(e.x - this.x, e.y - this.y) <= this.range) {
+                        e.takeDamage(this.damage);
+                        hit = true;
+                    }
+                });
+                if(hit) {
+                    this.cd = this.maxCd;
+                    AudioSys.sfx('shoot_3');
+                    game.state.particles.push(new Shockwave(this.x, this.y, this.range));
+                }
+                return;
+            }
+
+            let target = null;
+            let maxProgress = -1;
+            
+            for(const e of enemies) {
+                const dist = Math.hypot(e.x - this.x, e.y - this.y);
+                if(dist <= this.range && e.pathIdx > maxProgress) {
+                    target = e;
+                    maxProgress = e.pathIdx;
+                }
+            }
+            
+            if(target) {
+                this.cd = this.maxCd;
+                projs.push(new Projectile(this.x, this.y, target, this.damage, this.type));
+                AudioSys.sfx(`shoot_${this.type}`);
+            }
+        }
+    }
+    
+    draw(ctx) {
+        ctx.drawImage(Gfx.getTower(this.type, this.level), this.c * TILE, this.r * TILE);
+    }
+}
+
+class Enemy {
+    constructor(path, type, wave) {
+        this.path = path;
+        this.pathIdx = 0;
+        this.type = type;
+        
+        this.targetX = path[0][0] * TILE + TILE/2;
+        this.targetY = path[0][1] * TILE + TILE/2;
+        this.x = this.targetX;
+        this.y = this.targetY;
+        
+        const mult = 1 + (wave * 0.2);
+        if(type === 0) { this.hp = 20 * mult; this.spd = 2.0; this.bounty = 5; }
+        else if(type === 1) { this.hp = 12 * mult; this.spd = 3.5; this.bounty = 8; }
+        else { this.hp = 60 * mult; this.spd = 1.0; this.bounty = 15; }
+        
+        this.maxHp = this.hp;
+        this.dead = false;
+        this.finished = false;
+        this.frozen = 0;
+    }
+    
+    update() {
+        if(this.frozen > 0) this.frozen--;
+        
+        const wayPt = this.path[this.pathIdx];
+        const tx = wayPt[0] * TILE + TILE/2;
+        const ty = wayPt[1] * TILE + TILE/2;
+        
+        const dx = tx - this.x;
+        const dy = ty - this.y;
+        const dist = Math.hypot(dx, dy);
+        
+        let moveSpd = this.spd;
+        if(this.frozen > 0) moveSpd *= 0.6;
+        
+        if(dist < moveSpd) {
+            this.x = tx; this.y = ty;
+            this.pathIdx++;
+            if(this.pathIdx >= this.path.length) this.finished = true;
+        } else {
+            this.x += (dx/dist) * moveSpd;
+            this.y += (dy/dist) * moveSpd;
+        }
+    }
+    
+    takeDamage(amt, type) {
+        this.hp -= amt;
+        if(this.hp <= 0) { this.hp = 0; this.dead = true; AudioSys.sfx('hit'); }
+        if(type === 2) this.frozen = 30;
+    }
+    
+    draw(ctx) {
+        ctx.drawImage(Gfx.getEnemy(this.type), this.x - 15, this.y - 15);
+        const pct = this.hp / this.maxHp;
+        ctx.fillStyle = 'red'; ctx.fillRect(this.x - 12, this.y - 20, 24, 4);
+        ctx.fillStyle = '#0f0'; ctx.fillRect(this.x - 12, this.y - 20, 24 * pct, 4);
+    }
+}
+
+class Projectile {
+    constructor(x, y, target, dmg, type) {
+        this.x = x; this.y = y; this.target = target;
+        this.dmg = dmg; this.type = type;
+        this.spd = 12;
+        this.active = true;
+    }
+    
+    update() {
+        if(!this.target || this.target.dead) { this.active = false; return; }
+        
+        const dx = this.target.x - this.x;
+        const dy = this.target.y - this.y;
+        const dist = Math.hypot(dx, dy);
+        
+        if(dist < this.spd) {
+            this.target.takeDamage(this.dmg, this.type);
+            this.active = false;
+            game.state.particles.push(new Particle(this.x, this.y, this.type));
+        } else {
+            this.x += (dx/dist) * this.spd;
+            this.y += (dy/dist) * this.spd;
+        }
+    }
+    
+    draw(ctx) {
+        ctx.fillStyle = ['#0f0', '#0ff', '#f0f'][this.type] || '#fff';
+        ctx.beginPath(); ctx.arc(this.x, this.y, 4, 0, Math.PI*2); ctx.fill();
+    }
+}
+
+class Particle {
+    constructor(x, y, type) {
+        this.x = x; this.y = y;
+        this.vx = (Math.random()-0.5)*5;
+        this.vy = (Math.random()-0.5)*5;
+        this.life = 15;
+        this.color = ['#0f0', '#0ff', '#f0f'][type] || '#fff';
+    }
+    update() { this.x += this.vx; this.y += this.vy; this.life--; }
+    draw(ctx) {
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = this.life/15;
+        ctx.fillRect(this.x, this.y, 4, 4);
+        ctx.globalAlpha = 1;
+    }
+}
+
+class Shockwave {
+    constructor(x, y, r) { this.x = x; this.y = y; this.maxR = r; this.r = 10; this.life = 20; }
+    update() { this.r += (this.maxR - this.r) * 0.2; this.life--; }
+    draw(ctx) {
+        if(this.life<=0) return;
+        ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+        ctx.strokeStyle = `rgba(157, 0, 255, ${this.life/20})`;
+        ctx.lineWidth = 4; ctx.stroke();
+    }
+}
+
+// --- LOBBY ANIMATION ---
+const LobbyAnim = {
+    canvas: document.getElementById('lobby-bg'),
+    ctx: null,
+    drops: [],
+    init() {
+        this.ctx = this.canvas.getContext('2d');
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+        const columns = this.canvas.width / 20;
+        for(let i=0; i<columns; i++) this.drops[i] = 1;
+        this.animate();
+    },
+    animate() {
+        if(!document.getElementById('start-screen').classList.contains('hidden')) {
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.fillStyle = '#0F0';
+            this.ctx.font = '15px monospace';
+            for(let i=0; i<this.drops.length; i++) {
+                const text = String.fromCharCode(0x30A0 + Math.random() * 96);
+                this.ctx.fillText(text, i*20, this.drops[i]*20);
+                if(this.drops[i]*20 > this.canvas.height && Math.random() > 0.975) this.drops[i] = 0;
+                this.drops[i]++;
+            }
+            requestAnimationFrame(()=>this.animate());
+        }
+    }
+};
+
+const game = new Game();
+LobbyAnim.init();
+
+window.startGame = function(biome) {
+    AudioSys.init();
+    game.init(biome);
+    document.getElementById('start-screen').classList.add('hidden');
+}
+
+window.addEventListener('resize', () => {
+    LobbyAnim.canvas.width = window.innerWidth;
+    LobbyAnim.canvas.height = window.innerHeight;
+});
+</script>
+</body>
+</html>
