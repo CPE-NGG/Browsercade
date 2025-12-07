@@ -157,7 +157,6 @@
             background: var(--panel-bg);
             border-top: 3px solid var(--neon-green);
             padding: 10px;
-            /* UPDATE: Add Safe Area for iOS */
             padding-bottom: max(10px, env(safe-area-inset-bottom));
             display: flex;
             gap: 10px;
@@ -282,6 +281,7 @@
         .hidden { display: none !important; }
 
         /* --- LOBBY ELEMENTS --- */
+        /* UPDATED: Global Background for seamless animation */
         #lobby-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1; opacity: 0.3; pointer-events: none;
@@ -299,7 +299,7 @@
             pointer-events: auto;
         }
         
-        /* TOP RIGHT CONTROLS */
+        /* NEW TOP RIGHT CONTROLS */
         .lobby-header-controls {
             position: absolute;
             top: 20px;
@@ -385,7 +385,7 @@
             
             .bottom-bar { 
                 padding: 5px; 
-                padding-bottom: 60px; /* Safety clearance for mobile nav bars */
+                padding-bottom: 60px;
                 gap: 5px; 
                 justify-content: space-between; 
             }
@@ -395,7 +395,6 @@
             .biome-card { width: 80px; height: 100px; }
             h1 { font-size: 30px !important; }
             
-            /* Mobile adjustment for top right box */
             .lobby-header-controls {
                 top: 10px;
                 right: 10px;
@@ -409,7 +408,6 @@
             }
         }
 
-        /* Orientation queries for Splash Video */
         @media (orientation: portrait) {
             .vid-landscape { display: none; }
             .vid-portrait { display: block; }
@@ -1126,14 +1124,48 @@ class Game {
         this.selectedTower = tower;
         const menu = document.getElementById('upgrade-menu');
         
-        let mx = (tower.c * TILE) + TILE + 5;
-        let my = (tower.r * TILE) - 5;
-        if(mx + 140 > 750) mx = (tower.c * TILE) - 145;
-        if(my + 140 > 500) my = 500 - 140;
+        // --- IMPROVED VISUAL POSITIONING LOGIC ---
+        const container = document.getElementById('game-canvas-container');
+        const rect = container.getBoundingClientRect();
+        
+        // Scale factors: Ratio of actual size to game logic size (750x500)
+        const scaleX = rect.width / 750;
+        const scaleY = rect.height / 500;
+        
+        const menuW = 160; // Approx visual width of menu (CSS width + padding)
+        const menuH = 160; // Approx visual height
 
-        menu.style.left = mx + 'px';
-        menu.style.top = my + 'px';
+        // Calculate Visual Coordinates of the Tower on screen
+        const towerVisX = tower.c * TILE * scaleX;
+        const towerVisY = tower.r * TILE * scaleY;
+        const towerVisSize = TILE * scaleX;
+
+        // Default: Place to the right of the tower
+        let visLeft = towerVisX + towerVisSize + 5;
+        let visTop = towerVisY - 5;
+
+        // 1. Check Right Edge: If menu goes off screen, flip to Left
+        if (visLeft + menuW > rect.width) {
+            visLeft = towerVisX - menuW - 5;
+        }
+
+        // 2. Check Left Edge: If flipping left puts it off screen, center it or clamp
+        if (visLeft < 0) {
+            visLeft = Math.max(0, (rect.width - menuW) / 2);
+        }
+
+        // 3. Check Bottom Edge
+        if (visTop + menuH > rect.height) {
+            visTop = rect.height - menuH - 5;
+        }
+        
+        // 4. Check Top Edge
+        if (visTop < 0) visTop = 5;
+
+        menu.style.left = visLeft + 'px';
+        menu.style.top = visTop + 'px';
         menu.style.display = 'flex';
+        // ----------------------------------------
 
         // Update Stats
         const dmg = Math.floor(tower.damage);
@@ -1524,7 +1556,6 @@ const LobbyAnim = {
         this.animate();
     },
     animate() {
-        // UPDATED: Removed check for hidden start-screen so it animates immediately
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.fillStyle = '#0F0';
