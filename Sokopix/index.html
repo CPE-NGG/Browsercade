@@ -267,10 +267,16 @@
         .action-group { display: flex; flex-direction: column; gap: 15px; }
         .act-btn { width: 80px; height: 60px; font-size: 10px; border-radius: 12px; }
 
-        @media (max-width: 900px) { 
-            #mobile-controls { display: flex; } 
+        @media (max-width: 900px), (max-height: 700px) { 
+            #mobile-controls { 
+                display: flex; 
+            } 
             .lobby-header-controls { top: 10px; right: 10px; gap: 5px; }
             .icon-btn-small { width: 32px; height: 32px; font-size: 14px; }
+            
+            canvas#gameCanvas {
+                max-height: 40vh;
+            }
         }
 
         @media (orientation: portrait) {
@@ -936,15 +942,27 @@ window.addEventListener('keydown', e => {
     if(e.key==='Escape') game.togglePause();
 });
 
+const handleInput = (btn) => {
+    if(game.state === 'PLAY') {
+        const k = btn.dataset.key;
+        if(k === 'ArrowUp') game.move(0, -1);
+        if(k === 'ArrowDown') game.move(0, 1);
+        if(k === 'ArrowLeft') game.move(-1, 0);
+        if(k === 'ArrowRight') game.move(1, 0);
+    }
+};
+
 document.querySelectorAll('.d-btn').forEach(b => {
-    b.addEventListener('touchstart', e => { e.preventDefault(); 
-    if(game.state==='PLAY') {
-        const k=b.dataset.key;
-        if(k==='ArrowUp') game.move(0,-1);
-        if(k==='ArrowDown') game.move(0,1);
-        if(k==='ArrowLeft') game.move(-1,0);
-        if(k==='ArrowRight') game.move(1,0);
-    }}, {passive:false});
+    // Handle Touch for Mobile
+    b.addEventListener('touchstart', e => { 
+        e.preventDefault(); 
+        handleInput(b);
+    }, {passive: false});
+
+    // Handle Mousedown for Laptop/Desktop
+    b.addEventListener('mousedown', e => {
+        handleInput(b);
+    });
 });
 
 /* --- SPLASH SCREEN LOGIC --- */
