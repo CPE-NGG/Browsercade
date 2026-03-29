@@ -415,6 +415,24 @@
             background: var(--accent-primary);
             color: #000;
             transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 var(--accent-secondary);
+        }
+
+        /* Specific Hover for Settings Close Button */
+        #settings-modal .play-btn:hover {
+            background-color: var(--accent-secondary);
+            color: #000;
+            transform: scale(1.05); 
+            box-shadow: 
+                -4px 0 0 0 #000, 
+                4px 0 0 0 #000, 
+                0 -4px 0 0 #000, 
+                0 4px 0 0 #000,
+                0 0 15px var(--accent-secondary); 
+        }
+
+        #settings-modal .play-btn:active {
+            transform: scale(0.95); 
         }
 
         .modal-overlay {
