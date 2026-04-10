@@ -37,7 +37,7 @@
         /* --- BROWSERCADE BRANDING --- */
         .brand-header {
             position: absolute;
-            top: 5%; 
+            top: 8%; 
             width: 100%;
             text-align: center;
             pointer-events: none;
@@ -49,7 +49,7 @@
         .brand-text {
             display: inline-block;
             font-family: 'Press Start 2P', cursive;
-            font-size: 2.5rem; /* Matched to Bitbox */
+            font-size: 2.5rem;
             color: #fff;
             text-shadow: 4px 4px 0px var(--jungle-green);
             letter-spacing: 4px;
@@ -144,20 +144,64 @@
         .diff-btn:hover { background: var(--neon-yellow); color: #000; transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--jungle-green); }
         .diff-btn.selected { background: var(--jungle-green); color: #fff; transform: translate(2px, 2px); box-shadow: 2px 2px 0 #000; }
 
-        /* --- MODALS --- */
+        /* --- MODAL STYLES --- */
         .modal {
-            background: rgba(0, 15, 0, 0.98); border: 4px solid var(--neon-yellow);
-            padding: 40px; position: relative; width: 90%; max-width: 500px; text-align: center;
+            background: rgba(0, 15, 0, 0.98);
+            border: 4px solid var(--neon-yellow);
+            padding: 20px; /* Reduced from 40px to give content more room */
+            position: relative;
+            width: 90%;
+            max-width: 500px;
+            /* Removed padding: 40px; text-align: center; as it interferes with new layout */
             box-shadow: 15px 15px 0 var(--jungle-green);
-        }
-        .close-btn { 
-            position: absolute; top: -15px; right: -15px; 
-            background: var(--danger-red); color: #fff; border: 3px solid #000; 
-            width: 35px; height: 35px; cursor: pointer;
-            font-family: 'Press Start 2P'; font-size: 12px;
-            box-shadow: 4px 4px 0 #000; z-index: 10;
+            
+            /* New: Added flex for layout centering */
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
+        #modal-inner {
+            width: 100%;
+            text-align: center;
+            /* Standardized vertical spacing for all children (titles, text, buttons) */
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* This defines the space between *all* elements inside the modal */
+            align-items: center;
+        }
+
+        #modal-inner h2 {
+            margin: 0;
+            padding: 0;
+        }
+
+        #modal-inner p {
+            margin: 0;
+            padding: 0;
+        }
+
+        .close-btn { 
+            position: absolute; 
+            top: 5px; 
+            right: 5px; 
+            background: var(--danger-red); 
+            color: #fff; 
+            border: 3px solid #000; 
+            width: 35px; 
+            height: 35px; 
+            cursor: pointer;
+            font-family: 'Press Start 2P'; 
+            font-size: 12px;
+            box-shadow: 4px 4px 0 #000; 
+            z-index: 10;
+        }
+
+        #modal-inner button.diff-btn {
+            width: 100%; 
+            max-width: 260px; 
+        }
+        
         /* --- GAME ENGINE UI --- */
         #game-canvas { 
             background: rgba(0, 0, 0, 0.9); border: 4px solid var(--neon-yellow); 
