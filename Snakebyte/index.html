@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Snakebyte: Survival</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-yellow: #ccff00;
+            --neon-glow: rgba(204, 255, 0, 0.8);
+            --jungle-green: #006600;
+            --bg-black: #050800;
+            --danger-red: #ff0055;
+            --browsercade-teal: #00FF85;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: var(--bg-black);
+            font-family: 'Press Start 2P', cursive;
+            color: var(--neon-yellow);
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        /* --- BACKGROUND & EFFECTS --- */
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; image-rendering: pixelated; }
+        
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px; pointer-events: none; z-index: 100;
+        }
+
+        /* --- BROWSERCADE BRANDING --- */
+        .brand-header {
+            position: absolute;
+            top: 5%; 
+            width: 100%;
+            text-align: center;
+            pointer-events: none;
+            z-index: 101;
+            display: none;
+            opacity: 0;
+        }
+
+        .brand-text {
+            display: inline-block;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 2.5rem; /* Matched to Bitbox */
+            color: #fff;
+            text-shadow: 4px 4px 0px var(--jungle-green);
+            letter-spacing: 4px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* --- KEYFRAMES --- */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes smoothPopIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .reveal-effect { animation: smoothPopIn 0.8s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards; }
+
+        /* --- SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: black; z-index: 9999; display: flex; 
+            flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 2.5s ease-in-out; cursor: pointer;
+        }
+        #splash-screen.fade-out { opacity: 0; pointer-events: none; } 
+        #splash-screen video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 1; }
+        
+        #start-prompt { 
+            position: absolute; bottom: 20%; 
+            color: var(--browsercade-teal); 
+            font-size: 1rem; animation: blink 0.8s infinite; z-index: 10; 
+            text-shadow: 4px 4px 0px #000;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* --- ANIMATION KEYFRAMES --- */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes smoothPopIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .reveal-effect { animation: smoothPopIn 0.8s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards; }
+
+        /* --- SCREENS --- */
+        .screen {
+            position: absolute; width: 100%; height: 100%;
+            display: none; justify-content: center; align-items: center;
+            flex-direction: column; 
+            background: rgba(5, 8, 0, 0.4); 
+            backdrop-filter: blur(2px);
+            z-index: 5;
+            opacity: 0;
+        }
+        .screen.active { display: flex; opacity: 1; }
+
+        /* --- MODAL CONTAINER FIX --- */
+        #modal-container {
+            z-index: 2000; /* Forces modals to the very front */
+            background: rgba(0, 0, 0, 0.85);
+        }
+
+        .lobby-header-controls {
+            position: absolute; top: 20px; right: 20px;
+            display: none; gap: 10px; z-index: 1000;
+            opacity: 0;
+        }
+        .icon-btn-small {
+            background: #000; border: 2px solid var(--neon-yellow); color: var(--neon-yellow);
+            width: 40px; height: 40px; font-size: 18px; border-radius: 4px; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: 4px 4px 0 var(--jungle-green); transition: 0.1s;
+        }
+        .icon-btn-small:hover {
+            background: var(--neon-yellow); color: #000;
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 var(--jungle-green);
+        }
+
+        /* BUTTONS */
+        .diff-btn { 
+            width: 260px; padding: 16px 20px; margin: 10px 0;
+            background: #000; border: 3px solid var(--neon-yellow); 
+            color: var(--neon-yellow); font-family: 'Press Start 2P', cursive;
+            font-size: 12px; cursor: pointer; transition: 0.1s;
+            box-shadow: 6px 6px 0 var(--jungle-green);
+        }
+        .diff-btn:hover { background: var(--neon-yellow); color: #000; transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--jungle-green); }
+        .diff-btn.selected { background: var(--jungle-green); color: #fff; transform: translate(2px, 2px); box-shadow: 2px 2px 0 #000; }
+
+        /* --- MODALS --- */
+        .modal {
+            background: rgba(0, 15, 0, 0.98); border: 4px solid var(--neon-yellow);
+            padding: 40px; position: relative; width: 90%; max-width: 500px; text-align: center;
+            box-shadow: 15px 15px 0 var(--jungle-green);
+        }
+        .close-btn { 
+            position: absolute; top: -15px; right: -15px; 
+            background: var(--danger-red); color: #fff; border: 3px solid #000; 
+            width: 35px; height: 35px; cursor: pointer;
+            font-family: 'Press Start 2P'; font-size: 12px;
+            box-shadow: 4px 4px 0 #000; z-index: 10;
+        }
+
+        /* --- GAME ENGINE UI --- */
+        #game-canvas { 
+            background: rgba(0, 0, 0, 0.9); border: 4px solid var(--neon-yellow); 
+            box-shadow: 0 0 50px var(--neon-glow); max-width: 95vw; max-height: 50vh; 
+        }
+        .score-display { font-size: 1.2rem; margin-bottom: 15px; text-shadow: 2px 2px 0 #000; }
+
+        /* --- MOBILE CONTROLLER --- */
+        #mobile-controls { display: none; width: 100%; margin-top: 20px; }
+        .d-pad { display: grid; grid-template-columns: repeat(3, 65px); grid-template-rows: repeat(2, 65px); gap: 12px; justify-content: center; }
+        .d-btn { 
+            background: rgba(204, 255, 0, 0.1); border: 2px solid var(--neon-yellow); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px;
+        }
+        .d-btn:active { background: var(--neon-yellow); color: #000; }
+        .d-up { grid-column: 2; grid-row: 1; } .d-left { grid-column: 1; grid-row: 2; }
+        .d-down { grid-column: 2; grid-row: 2; } .d-right { grid-column: 3; grid-row: 2; }
+
+        @media (max-width: 900px) {
+            #mobile-controls { display: block; }
+            #game-canvas { max-height: 40vh; transform: scale(0.9); }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="splash-screen">
+        <video id="vid-ls" autoplay muted loop playsinline>
+            <source src="../assets/BrowsercadeLS.mp4" type="video/mp4">
+        </video>
+        <div id="start-prompt">TAP TO START</div>
+    </div>
+
+    <div class="brand-header" id="brand-header">
+        <div class="brand-text">BROWSERCADE</div>
+    </div>
+
+    <div class="lobby-header-controls" id="sys-nav">
+        <button class="icon-btn-small" onclick="window.location.href='../index.html'">🏠</button>
+        <button class="icon-btn-small" onclick="showModal('scores')">🏆</button>
+        <button class="icon-btn-small" onclick="showModal('settings')">⚙️</button>
+        <button class="icon-btn-small" onclick="showModal('rules')">❓</button>
+    </div>
+
+    <canvas id="bg-canvas"></canvas>
+    <div class="scanlines"></div>
+
+    <!-- MAIN SCREENS -->
+    <section id="screen-lobby" class="screen">
+        <h1 style="font-size: 2.5rem; margin-top: 60px; text-shadow: 4px 4px 0 #000;">SNAKEBYTE</h1>
+        <div style="display: flex; flex-direction: column; align-items: center; margin-top: 20px;">
+            <button class="diff-btn" id="btn-easy" onclick="setDiff('easy')">EASY: FLAT</button>
+            <button class="diff-btn" id="btn-medium" onclick="setDiff('medium')">MED: CROSS</button>
+            <button class="diff-btn" id="btn-hard" onclick="setDiff('hard')">HARD: CIRCUIT</button>
+            <button class="diff-btn" style="margin-top: 30px; background: var(--neon-yellow); color: #000;" onclick="startGame()">INITIATE</button>
+        </div>
+    </section>
+
+    <section id="screen-game" class="screen">
+        <div class="score-display">SYNC: <span id="score-val">0</span></div>
+        <canvas id="game-canvas"></canvas>
+        <div id="mobile-controls">
+            <div class="d-pad">
+                <div class="d-btn d-up" ontouchstart="handleDPad('UP')">▲</div>
+                <div class="d-btn d-left" ontouchstart="handleDPad('LEFT')">◀</div>
+                <div class="d-btn d-down" ontouchstart="handleDPad('DOWN')">▼</div>
+                <div class="d-btn d-right" ontouchstart="handleDPad('RIGHT')">▶</div>
+            </div>
+        </div>
+        <button class="diff-btn" style="margin-top: 20px; font-size: 0.6rem; width: 220px;" onclick="location.reload()">ABORT MISSION</button>
+    </section>
+
+    <!-- MODAL OVERLAY (High Z-Index) -->
+    <section id="modal-container" class="screen">
+        <div id="modal-content" class="modal">
+            <button class="close-btn" onclick="closeModal()">X</button>
+            <div id="modal-inner"></div>
+        </div>
+    </section>
+
+    <script>
+        /* --- BACKGROUND --- */
+        const bg = document.getElementById('bg-canvas');
+        const bgCtx = bg.getContext('2d');
+        let leaves = [], vines = [], terrainOffset = 0;
+
+        function resize() {
+            bg.width = window.innerWidth; bg.height = window.innerHeight;
+            leaves = []; vines = [];
+            for(let i=0;i<40;i++) leaves.push({ x: Math.random()*bg.width, y: Math.random()*bg.height, size: 4+Math.random()*6, speed: 0.3+Math.random(), sway: Math.random()*Math.PI });
+            for(let i=0;i<15;i++) vines.push({ x: Math.random()*bg.width, length: 150+Math.random()*200, phase: Math.random()*Math.PI });
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        function drawBG(){
+            bgCtx.fillStyle = "#050800"; bgCtx.fillRect(0,0,bg.width,bg.height);
+            terrainOffset += 0.3;
+            for(let layer=0; layer<3; layer++){
+                let yBase = bg.height - (layer*60) - 40;
+                bgCtx.fillStyle = `rgba(0,${80+layer*40},0,0.6)`;
+                for(let x=0; x<bg.width; x+=20){
+                    let h = Math.sin((x+terrainOffset*(layer+1))*0.02)*10;
+                    bgCtx.fillRect(x, yBase + h, 20, 100);
+                }
+            }
+            vines.forEach(v=>{
+                v.phase += 0.01; let sway = Math.sin(v.phase)*10;
+                bgCtx.fillStyle = "#00aa00";
+                for(let y=0; y<v.length; y+=8) bgCtx.fillRect(v.x + sway, y, 4, 8);
+            });
+            leaves.forEach(l=>{
+                l.y += l.speed; l.sway += 0.05;
+                let x = l.x + Math.sin(l.sway)*10;
+                bgCtx.fillStyle = "#ccff00"; bgCtx.fillRect(x, l.y, l.size, l.size);
+                if(l.y > bg.height){ l.y = -10; l.x = Math.random()*bg.width; }
+            });
+            requestAnimationFrame(drawBG);
+        }
+        drawBG();
+
+        /* --- AUDIO --- */
+        const audio = {
+            ctx: null, bgmG: null, sfxG: null, musicInt: null, beat: 0,
+            init() {
+                if(this.ctx) return;
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                this.bgmG = this.ctx.createGain(); this.sfxG = this.ctx.createGain();
+                this.bgmG.connect(this.ctx.destination); this.sfxG.connect(this.ctx.destination);
+                this.updateVol();
+            },
+            updateVol() { 
+                if(this.bgmG) this.bgmG.gain.setTargetAtTime(document.getElementById('bgm-vol')?.value * 0.2 || 0.1, this.ctx.currentTime, 0.1); 
+                if(this.sfxG) this.sfxG.gain.setTargetAtTime(document.getElementById('sfx-vol')?.value || 0.7, this.ctx.currentTime, 0.1); 
+            },
+            playSFX(f, t='sine', d=0.1) {
+                this.init(); const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
+                o.type = t; o.frequency.value = f; g.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + d);
+                o.connect(g); g.connect(this.sfxG); o.start(); o.stop(this.ctx.currentTime + d);
+            },
+            startMusic() {
+                this.init(); if(this.musicInt) return;
+                this.musicInt = setInterval(() => {
+                    const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
+                    o.type = 'triangle'; o.frequency.value = (this.beat % 4 === 0) ? 55 : 82;
+                    g.gain.setValueAtTime(0.1, this.ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
+                    o.connect(g); g.connect(this.bgmG); o.start(); o.stop(this.ctx.currentTime + 0.4);
+                    if(this.beat % 2 === 0) this.playSFX(2000, 'sine', 0.05);
+                    this.beat++;
+                }, 400);
+            }
+        };
+
+        /* --- GAME ENGINE --- */
+        const canvas = document.getElementById('game-canvas');
+        const gCtx = canvas.getContext('2d');
+        let snake, food, dir, nextDir, score, loop, difficulty = 'easy', obstacles = [];
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const target = document.getElementById('screen-' + id);
+            target.classList.add('active');
+            if(id === 'scores') loadScores();
+            audio.playSFX(600, 'sine', 0.1);
+        }
+
+        function setDiff(d) {
+            difficulty = d;
+            document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById('btn-' + d).classList.add('selected');
+            audio.playSFX(800, 'sine', 0.05);
+        }
+
+        function generateHardMap(size) {
+            let obs = []; const mid = Math.floor(size / 2);
+            for(let i=mid-3; i<=mid+3; i++) obs.push({x: mid, y: i}, {x: i, y: mid});
+            const off = 5, len = 6;
+            for(let i=0; i<len; i++) {
+                obs.push({x: off, y: off+i}, {x: off+i, y: off});
+                obs.push({x: size-1-off, y: off+i}, {x: size-1-off-i, y: off});
+                obs.push({x: off, y: size-1-off-i}, {x: off+i, y: size-1-off});
+                obs.push({x: size-1-off, y: size-1-off-i}, {x: size-1-off-i, y: size-1-off});
+            }
+            return obs;
+        }
+
+        function startGame() {
+            const m = { easy:20, medium:25, hard:30 }[difficulty];
+            const speed = { easy:130, medium:95, hard:65 }[difficulty];
+            
+            // Hide the brand header immediately on start
+            document.getElementById('brand-header').style.display = 'none';
+            
+            showScreen('game');
+            canvas.width = canvas.height = Math.min(window.innerWidth * 0.85, 500);
+            snake = [{x:2, y:2}, {x:1, y:2}]; dir = nextDir = 'RIGHT'; score = 0; obstacles = [];
+            
+            if(difficulty === 'medium') {
+                const mid = Math.floor(m/2);
+                for(let i=0; i<m; i++) if(Math.abs(i-mid)>4) obstacles.push({x:mid, y:i}, {x:i, y:mid});
+            } else if(difficulty === 'hard') obstacles = generateHardMap(m);
+            
+            spawnFood(m);
+            if(loop) clearInterval(loop);
+            loop = setInterval(() => step(m), speed);
+        }
+
+        function spawnFood(grid) {
+            food = { x:Math.floor(Math.random()*grid), y:Math.floor(Math.random()*grid) };
+            if(snake.some(s=>s.x===food.x && s.y===food.y) || obstacles.some(o=>o.x===food.x && o.y===food.y)) spawnFood(grid);
+        }
+
+        function step(grid) {
+            dir = nextDir; const head = {...snake[0]};
+            if(dir === 'UP') head.y--; if(dir === 'DOWN') head.y++; if(dir === 'LEFT') head.x--; if(dir === 'RIGHT') head.x++;
+            
+            if(head.x < 0 || head.x >= grid || head.y < 0 || head.y >= grid || 
+               snake.some(s => s.x === head.x && s.y === head.y) || 
+               obstacles.some(o => o.x === head.x && o.y === head.y)) {
+                return endGame();
+            }
+
+            snake.unshift(head);
+            if(head.x === food.x && head.y === food.y) { 
+                score+=10; document.getElementById('score-val').innerText = score; 
+                audio.playSFX(1200, 'square', 0.1); spawnFood(grid); 
+            } else { snake.pop(); }
+            render(grid);
+        }
+
+        function render(grid) {
+            const cs = canvas.width / grid; gCtx.clearRect(0,0, canvas.width, canvas.height);
+            gCtx.fillStyle = '#004400'; obstacles.forEach(o => gCtx.fillRect(o.x*cs, o.y*cs, cs, cs));
+            gCtx.fillStyle = '#ff0055'; gCtx.fillRect(food.x*cs+2, food.y*cs+2, cs-4, cs-4);
+            snake.forEach((s,i) => { gCtx.fillStyle = i===0 ? '#ccff00' : '#446600'; gCtx.fillRect(s.x*cs+1, s.y*cs+1, cs-2, cs-2); });
+        }
+
+        function endGame() {
+            clearInterval(loop); audio.playSFX(100, 'sawtooth', 0.5);
+            let list = JSON.parse(localStorage.getItem('sb_final_scores') || '[]');
+            list.push({s: score, d: new Date().toLocaleDateString()});
+            list.sort((a,b)=>b.s-a.s);
+            localStorage.setItem('sb_final_scores', JSON.stringify(list.slice(0,5)));
+            showModal('over');
+        }
+
+        function resetToLobby() {
+            // 1. Stop the game loop if it's running
+            if(loop) clearInterval(loop);
+            
+            // 2. Reset the UI score
+            score = 0;
+            document.getElementById('score-val').innerText = score;
+            
+            // 3. Hide the modal and the game screen
+            closeModal();
+
+            // Show the brand header again when returning to lobby
+            document.getElementById('brand-header').style.display = 'block';
+            
+            // 4. Return to lobby
+            showScreen('lobby');
+            
+            // 5. Play a reset sound
+            audio.playSFX(400, 'square', 0.2);
+        }
+
+        /* --- MODALS --- */
+        function showModal(type) {
+            const inner = document.getElementById('modal-inner');
+            const container = document.getElementById('modal-container');
+            const closeBtn = document.querySelector('.close-btn');
+            
+            container.classList.add('active');
+            closeBtn.style.display = 'block';
+
+            if(type === 'rules') {
+                inner.innerHTML = `<h2>MANUAL</h2><p style="font-size:10px; line-height:2.2;">Use Arrows or D-Pad.<br>Eat Nodes to Sync.<br>Avoid Barriers & Self.</p>`;
+            }
+            if(type === 'settings') {
+                inner.innerHTML = `<h2>AUDIO</h2><div style="text-align:left"><p>BGM: <input type="range" id="bgm-vol" min="0" max="1" step="0.1" value="0.5" oninput="audio.updateVol()"></p><p>SFX: <input type="range" id="sfx-vol" min="0" max="1" step="0.1" value="0.7" oninput="audio.updateVol()"></p></div>`;
+            }
+            if(type === 'scores') { 
+                // Added margin-bottom to h2 for spacing and a div for the wipe button
+                inner.innerHTML = `
+                    <h2 style="margin-bottom: 30px;">RANK</h2>
+                    <div id="score-list" style="margin-bottom: 20px;"></div>
+                    <div id="wipe-container">
+                        <button class="diff-btn" style="width:100%;font-size:10px" onclick="clearScores()">WIPE</button>
+                    </div>`; 
+                loadScores(); 
+            }
+            if(type === 'over') {
+                inner.innerHTML = `
+                    <h2 style="margin-bottom: 20px;">CRASHED</h2>
+                    <p style="margin-bottom: 30px;">SYNC: ${score}</p>
+                    <button class="diff-btn" onclick="resetToLobby()" style="background:var(--danger-red);color:white;width:100%; border-color: white;">REBOOT</button>
+                `;
+                closeBtn.style.display = 'none';
+            }
+        }
+        function closeModal() { document.getElementById('modal-container').classList.remove('active'); }
+
+        function loadScores() {
+            const list = JSON.parse(localStorage.getItem('sb_final_scores') || '[]');
+            const listContainer = document.getElementById('score-list');
+            const wipeContainer = document.getElementById('wipe-container');
+            
+            if(!listContainer) return;
+
+            if (list.length > 0) {
+                listContainer.innerHTML = list.map(x => `
+                    <div style="display:flex;justify-content:space-between;font-size:10px;margin:10px 0">
+                        <span>${x.s} PTS</span><span>${x.d}</span>
+                    </div>`).join('');
+                if(wipeContainer) wipeContainer.style.display = 'block';
+            } else {
+                // Increased margin-top here to separate "NO DATA" from "RANK"
+                listContainer.innerHTML = `<div style="font-size:10px; margin-top: 10px; color: rgba(204,255,0,0.5);">NO DATA</div>`;
+                if(wipeContainer) wipeContainer.style.display = 'none';
+            }
+        }
+
+        function clearScores() {
+            localStorage.removeItem('sb_final_scores');
+            audio.playSFX(200, 'sawtooth', 0.2); // Added feedback for wiping
+            loadScores(); 
+        }
+
+        function handleDPad(newDir) {
+            if (newDir === 'UP' && dir !== 'DOWN') nextDir = 'UP';
+            if (newDir === 'DOWN' && dir !== 'UP') nextDir = 'DOWN';
+            if (newDir === 'LEFT' && dir !== 'RIGHT') nextDir = 'LEFT';
+            if (newDir === 'RIGHT' && dir !== 'LEFT') nextDir = 'RIGHT';
+            audio.playSFX(800, 'sine', 0.05);
+        }
+
+        /* --- INITIALIZATION --- */
+        window.onload = function() {
+            const splash = document.getElementById('splash-screen');
+            const lobby = document.getElementById('screen-lobby');
+            const brand = document.getElementById('brand-header');
+            const nav = document.getElementById('sys-nav');
+            setDiff('easy');
+
+            splash.addEventListener('click', () => {
+                audio.init(); // Initialize context
+                audio.playSFX(1200, 'triangle', 0.5);
+
+                splash.classList.add('fade-out');
+                
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    brand.style.display = 'block'; // Triggers the float animation
+                    nav.style.display = 'flex';
+                    lobby.classList.add('active');
+                    
+                    // Staggered reveals
+                    brand.classList.add('reveal-effect');
+                    nav.classList.add('reveal-effect');
+                    lobby.classList.add('reveal-effect');
+                    
+                    audio.startMusic();
+                }, 2500); 
+            });
+        };
+
+        window.addEventListener('keydown', e => {
+            const k = e.key;
+            if(k === 'ArrowUp' && dir !== 'DOWN') nextDir = 'UP';
+            if(k === 'ArrowDown' && dir !== 'UP') nextDir = 'DOWN';
+            if(k === 'ArrowLeft' && dir !== 'RIGHT') nextDir = 'LEFT';
+            if(k === 'ArrowRight' && dir !== 'LEFT') nextDir = 'RIGHT';
+        });
+    </script>
+</body>
+</html>
