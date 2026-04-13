@@ -836,9 +836,19 @@
                     sessionStorage.setItem('browsercade_memoryquest_logo_seen', 'true');
                     
                     setTimeout(() => {
+                        splash.style.display = 'none';
+                        
+                        // 1. Set display first so animation can play
+                        sysHeader.style.display = 'block';
+                        topNav.style.display = 'flex';
+                        lobby.style.display = 'block';
+
+                        // 2. Add the animation class to all elements at once
+                        sysHeader.classList.add('reveal-effect');
+                        topNav.classList.add('reveal-effect');
+                        lobby.classList.add('reveal-effect');
+
                         audioManager.startLobbyBGM();
-                        lobby.classList.add('visible');
-                        sysHeader.classList.add('visible');
                     }, 2500);
                 };
                 splash.addEventListener('click', handleStartTap);
