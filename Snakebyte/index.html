@@ -224,13 +224,23 @@
             #mobile-controls { display: block; }
             #game-canvas { max-height: 40vh; transform: scale(0.9); }
         }
+
+        @media (orientation: portrait) {
+            .vid-landscape { display: none; }
+            .vid-portrait { display: block; }
+            .brand-text { font-size: 1.2rem; letter-spacing: 2px; }
+            .brand-header { top: 10%; }
+        }
     </style>
 </head>
 
 <body>
     <div id="splash-screen">
-        <video id="vid-ls" autoplay muted loop playsinline>
+        <video id="vid-ls" class="vid-landscape" autoplay muted loop playsinline>
             <source src="../assets/BrowsercadeLS.mp4" type="video/mp4">
+        </video>
+        <video id="vid-pr" class="vid-portrait" autoplay muted loop playsinline>
+            <source src="../assets/BrowsercadePR.mp4" type="video/mp4">
         </video>
         <div id="start-prompt">TAP TO START</div>
     </div>
