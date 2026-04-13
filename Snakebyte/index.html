@@ -401,7 +401,7 @@
 
         function startGame() {
             const m = { easy:20, medium:25, hard:30 }[difficulty];
-            const speed = { easy:130, medium:95, hard:65 }[difficulty];
+            const speed = { easy:130, medium:105, hard:80 }[difficulty];
             
             // Hide the brand header immediately on start
             document.getElementById('brand-header').style.display = 'none';
@@ -437,7 +437,7 @@
 
             snake.unshift(head);
             if(head.x === food.x && head.y === food.y) { 
-                score+=10; document.getElementById('score-val').innerText = score; 
+                score+=5; document.getElementById('score-val').innerText = score; 
                 audio.playSFX(1200, 'square', 0.1); spawnFood(grid); 
             } else { snake.pop(); }
             render(grid);

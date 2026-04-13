@@ -71,9 +71,9 @@
             width: 100%;
             text-align: center;
             pointer-events: none;
-            z-index: 5;
-            animation: float 3s ease-in-out infinite;
+            z-index: 101; 
             opacity: 0; 
+            display: none; 
         }
 
         .brand-header.visible { opacity: 1; }
@@ -82,6 +82,24 @@
         .brand-text {
             font-family: 'Press Start 2P', cursive;
             font-size: 2.5rem;
+            color: var(--neon-green);
+            text-shadow: 4px 4px 0px #000;
+            letter-spacing: 4px;
+        }
+
+        @keyframes smoothPopIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .reveal-effect {
+            animation: smoothPopIn 0.8s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards,
+                    float 3s ease-in-out infinite 0.8s; /* Float starts after pop-in */
+        }
+
+        .brand-text {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(1.2rem, 5vw, 2.5rem);
             color: var(--neon-green);
             text-shadow: 4px 4px 0px #000;
             letter-spacing: 4px;
@@ -315,10 +333,16 @@
         @keyframes glow { from { text-shadow: 0 0 5px #fff; } to { text-shadow: 0 0 20px var(--neon-gold); } }
 
         @media (max-width: 768px) {
-            body { overflow-y: auto; justify-content: flex-start; padding-top: 10px; padding-bottom: 50px; }
-            .brand-header { position: relative; top: auto; margin-bottom: 15px; animation: none; }
+            body { overflow-y: auto; justify-content: flex-start; padding-top: 10px; }
+            
+            .brand-header { 
+                top: 10%; 
+                margin-bottom: 0; 
+            }
+            
             .brand-text { font-size: 1.2rem; letter-spacing: 2px; }
-            .lobby-container { width: 95%; padding: 15px; margin-top: 0; }
+            .lobby-container { width: 95%; padding: 15px; margin-top: 60px; }
+
             h1 { font-size: 1.2rem; }
             .mode-select { flex-direction: column; gap: 10px; }
             .pixel-btn { padding: 12px; font-size: 0.8rem; }
