@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STACKBIT</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        :root {
+            --neon-pink: #ff2d95;
+            --neon-blue: #00e5ff;
+            --night-black: #050510;
+            --pixel-font: 'Press Start 2P', cursive;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            touch-action: manipulation; 
+            image-rendering: pixelated;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: var(--night-black);
+            color: var(--neon-pink);
+            font-family: var(--pixel-font); overflow: hidden;
+            text-transform: uppercase;
+        }
+
+        /* --- BACKGROUND CANVAS --- */
+        #bg-canvas { 
+            position: fixed; top: 0; left: 0; 
+            width: 100vw; height: 100vh; 
+            z-index: 1; object-fit: fill; 
+            border : none !important;
+            outline: none !important;
+        }
+
+        /* --- NAVIGATION (UPPER RIGHT) --- */
+        #lobby-nav {
+            position: absolute; top: 20px; right: 20px;
+            display: flex; flex-direction: row; gap: 12px; z-index: 2000;
+        }
+
+        /* STACKBIT Styled Control Buttons */
+        .nav-btn {
+            width: 45px; height: 45px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid var(--neon-pink);
+            color: var(--neon-pink);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-family: var(--pixel-font);
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.9);
+            transition: 0.1s;
+        }
+
+        .nav-btn:hover { 
+            background: var(--neon-pink);
+            color: white;
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px rgba(0,0,0,1);
+        }
+
+        .nav-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px;
+        }
+
+        /* --- SCREENS (MODALS) --- */
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            background: transparent; 
+            z-index: 1500; 
+        }
+
+        .hidden { display: none !important; }
+
+        .modal {
+            background: rgba(5, 5, 16, 0.98); 
+            border: 6px solid var(--neon-pink);
+            padding: 40px; text-align: center; width: 90%; max-width: 600px;
+            box-shadow: 12px 12px 0px rgba(0,0,0,0.9);
+        }
+
+        h1 { font-size: 2.2rem; margin: 0 0 10px 0; color: var(--neon-blue); text-shadow: 4px 4px 0px var(--neon-pink); }
+        h2 { font-size: 1rem; margin-bottom: 20px; color: var(--neon-blue); }
+
+        /* --- STACKBIT THEMED BUTTONS (START SCREEN) --- */
+        .mode-btn {
+            flex: 1;
+            height: 60px;
+            background: transparent;
+            border: 4px solid var(--neon-pink);
+            color: var(--neon-pink);
+            font-family: var(--pixel-font);
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: 0.1s;
+            box-shadow: 6px 6px 0px rgba(0,0,0,0.5);
+        }
+
+        .mode-btn:hover {
+            background: var(--neon-pink);
+            color: white;
+            transform: translate(-2px, -2px);
+        }
+
+        .mode-btn.vs-alt {
+            border-color: var(--neon-blue);
+            color: var(--neon-blue);
+        }
+
+        .mode-btn.vs-alt:hover {
+            background: var(--neon-blue);
+            color: black;
+        }
+
+        /* --- UI COMPONENTS --- */
+        .board-container { display: flex; justify-content: space-around; gap: 20px; margin-top: 20px; }
+        .board-list { text-align: left; font-size: 0.5rem; line-height: 2; width: 45%; border: 2px solid #333; padding: 10px; }
+        .board-title { color: var(--neon-blue); margin-bottom: 10px; text-decoration: underline; }
+
+        #game-screen { z-index: 500; background: transparent; }
+        #game-view { display: flex; gap: 30px; pointer-events: none; }
+        
+        .player-container { 
+            display: flex; gap: 12px; pointer-events: auto; background: rgba(0,0,0,0.95); padding: 12px; 
+            border: 4px solid var(--neon-pink); box-shadow: 10px 10px 0px rgba(0,0,0,0.5);
+        }
+
+        #p2-container { border-color: var(--neon-blue); flex-direction: row; }
+        #p1-container { flex-direction: row-reverse; }
+
+        canvas { background: #000; border: 4px solid var(--neon-pink); }
+        #p2-board { border-color: var(--neon-blue); }
+
+        .stats { display: flex; flex-direction: column; gap: 10px; width: 110px; }
+        .stat-box { border: 4px solid var(--neon-pink); padding: 8px; background: #000; text-align: center; }
+        .val { font-size: 0.8rem; color: #fff; }
+        #p2-container .stat-box { border-color: var(--neon-blue); }
+        #p2-container .val { color: var(--neon-blue); }
+
+        kbd { background: #222; padding: 2px 4px; border: 1px solid #444; color: var(--neon-blue); font-size: 0.45rem; }
+
+        .pixel-btn-long {
+            background: transparent; color: var(--neon-pink); border: 4px solid var(--neon-pink);
+            padding: 12px; font-family: var(--pixel-font); font-size: 0.65rem;
+            cursor: pointer; width: 100%; margin-top: 20px; transition: 0.1s;
+        }
+        .pixel-btn-long:hover { background: var(--neon-pink); color: white; }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div id="lobby-nav">
+        <button class="nav-btn" onclick="window.location.href='../index.html'" title="Return to Hub">🏠</button>
+        <button class="nav-btn" onclick="openLeaderboard()" title="Records">🏆</button>
+        <button class="nav-btn" onclick="openModal('settings-modal')" title="Settings">⚙️</button>
+        <button class="nav-btn" onclick="openModal('rules-modal')" title="Rules">❓</button>
+    </div>
+
+    <div id="start-screen" class="screen">
+        <div class="modal">
+            <h1>STACKBIT</h1>
+            <p style="letter-spacing: 4px; color: var(--neon-pink); font-size: 0.6rem; margin-bottom: 20px;">MIDNIGHT VS EDITION</p>
+            <div style="display: flex; gap: 20px; margin-top: 20px;">
+                <button class="mode-btn" onclick="initGame('single')">SOLO RUN</button>
+                <button class="mode-btn vs-alt" onclick="initGame('vs')">DUAL MODE</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="leaderboard-modal" class="screen hidden" onclick="closeModals()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <h2>CITY RECORDS</h2>
+            <div class="board-container">
+                <div class="board-list">
+                    <div class="board-title">SOLO TOP 5</div>
+                    <div id="solo-list">-- EMPTY --</div>
+                </div>
+                <div class="board-list">
+                    <div class="board-title">VS TOP 5</div>
+                    <div id="vs-list">-- EMPTY --</div>
+                </div>
+            </div>
+            <button class="pixel-btn-long" onclick="closeModals()">EXIT</button>
+        </div>
+    </div>
+
+    <div id="rules-modal" class="screen hidden" onclick="closeModals()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <h2>LINK START</h2>
+            <div style="display: flex; flex-direction: column; gap: 15px; text-align: left; font-size: 0.6rem;">
+                <div><span style="color:var(--neon-blue)">P2 (LEFT):</span> <kbd>WASD</kbd> | <kbd>Q</kbd> (HARD DROP)</div>
+                <div><span style="color:var(--neon-pink)">P1 (RIGHT):</span> <kbd>ARROWS</kbd> | <kbd>SPACE</kbd> (HARD DROP)</div>
+            </div>
+            <button class="pixel-btn-long" onclick="closeModals()">OK</button>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="screen hidden" onclick="closeModals()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <h2>SYSTEM</h2>
+            <p>AUDIO: <button class="nav-btn" id="audio-toggle" onclick="toggleAudio()" style="width:80px; display:inline-flex; height: 35px; font-size: 0.6rem;">ON</button></p>
+            <button class="pixel-btn-long" onclick="closeModals()">BACK</button>
+        </div>
+    </div>
+
+    <div id="game-over-screen" class="screen hidden">
+        <div class="modal">
+            <h2 id="win-text">TERMINATED</h2>
+            <div class="stat-box" style="margin: 20px auto; width: 250px;">
+                <div style="font-size: 0.5rem; color:#666;">FINAL SCORE</div>
+                <div id="final-score" style="font-size: 1.2rem;">0</div>
+            </div>
+            <button class="pixel-btn-long" onclick="window.location.reload()">RETRY</button>
+        </div>
+    </div>
+
+    <div id="game-screen" class="screen hidden">
+        <div id="game-view">
+            <div class="player-container vs-p2 hidden" id="p2-container">
+                <div class="stats">
+                    <div class="stat-box"><canvas id="p2-next" width="80" height="80"></canvas></div>
+                    <div class="stat-box"><div id="p2-score-val" class="val">0</div></div>
+                </div>
+                <canvas id="p2-board" width="240" height="480"></canvas>
+            </div>
+            <div class="player-container" id="p1-container">
+                <div class="stats">
+                    <div class="stat-box"><canvas id="p1-next" width="80" height="80"></canvas></div>
+                    <div class="stat-box"><div id="p1-score-val" class="val">0</div></div>
+                </div>
+                <canvas id="p1-board" width="240" height="480"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /** AUDIO **/
+        let audioCtx = null, audioEnabled = true;
+        function playSfx(freq, type, dur) {
+            if (!audioEnabled) return;
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            g.gain.setValueAtTime(0.04, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+            osc.connect(g); g.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + dur);
+        }
+
+        /** NEON SKYLINE **/
+        const bg = document.getElementById('bg-canvas'), bgCtx = bg.getContext('2d');
+        const V_WIDTH = 480, V_HEIGHT = 270;
+        bg.width = V_WIDTH; bg.height = V_HEIGHT;
+
+        const stars = Array.from({length: 60}, () => ({
+            x: Math.random() * V_WIDTH,
+            y: Math.random() * (V_HEIGHT * 0.6),
+            size: Math.random() * 1.5,
+            blink: Math.random()
+        }));
+
+        class Building {
+            constructor(layer) {
+                this.layer = layer;
+                this.width = 25 + Math.random() * 35;
+                this.height = layer === 0 ? 100 + Math.random() * 80 : 150 + Math.random() * 100;
+                this.x = Math.random() * V_WIDTH;
+                this.speed = layer === 0 ? 0.08 : 0.25;
+                this.color = layer === 0 ? '#0a0515' : '#050208';
+                this.neonColors = ['#ff2d95', '#00e5ff', '#00ff00', '#ffff00', '#ffffff'];
+            }
+            update() {
+                this.x -= this.speed;
+                if (this.x + this.width < 0) this.x = V_WIDTH;
+            }
+            draw() {
+                bgCtx.fillStyle = this.color;
+                bgCtx.fillRect(this.x, V_HEIGHT - this.height, this.width, this.height);
+                if (this.layer === 1) {
+                    for (let i = 4; i < this.width - 4; i += 8) {
+                        for (let j = 10; j < this.height - 10; j += 15) {
+                            if (Math.random() > 0.5) {
+                                const c = this.neonColors[Math.floor(Math.random() * this.neonColors.length)];
+                                bgCtx.fillStyle = c;
+                                bgCtx.shadowBlur = 8; bgCtx.shadowColor = c;
+                                bgCtx.fillRect(this.x + i, V_HEIGHT - this.height + j, 3, 5);
+                                bgCtx.shadowBlur = 0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        const farBuildings = Array.from({length: 12}, () => new Building(0));
+        const nearBuildings = Array.from({length: 8}, () => new Building(1));
+
+        function drawBg() {
+            const skyGrad = bgCtx.createLinearGradient(0, 0, 0, V_HEIGHT);
+            skyGrad.addColorStop(0, '#050510'); skyGrad.addColorStop(1, '#2d1440');
+            bgCtx.fillStyle = skyGrad;
+            bgCtx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
+
+            stars.forEach(s => {
+                bgCtx.fillStyle = `rgba(255, 255, 255, ${0.3 + Math.abs(Math.sin(Date.now() * 0.001 + s.blink)) * 0.7})`;
+                bgCtx.fillRect(s.x, s.y, s.size, s.size);
+            });
+
+            const mx = V_WIDTH * 0.78, my = 45;
+            bgCtx.fillStyle = '#f0f0f0';
+            bgCtx.fillRect(mx-6, my-10, 18, 2); bgCtx.fillRect(mx-10, my-8, 26, 20); bgCtx.fillRect(mx-6, my+12, 18, 2);
+            bgCtx.fillStyle = '#bbb'; bgCtx.fillRect(mx, my-2, 4, 4); bgCtx.fillRect(mx-5, my+4, 3, 3);
+
+            farBuildings.forEach(b => { b.update(); b.draw(); });
+            nearBuildings.forEach(b => { b.update(); b.draw(); });
+            requestAnimationFrame(drawBg);
+        }
+        drawBg();
+
+        /** UI CONTROL **/
+        function openModal(id) {
+            closeModals();
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModals() {
+            document.querySelectorAll('.screen:not(#start-screen):not(#game-screen)').forEach(m => {
+                m.classList.add('hidden');
+            });
+        }
+
+        function openLeaderboard() {
+            const solo = JSON.parse(localStorage.getItem('stackbit_solo') || '[]');
+            const vs = JSON.parse(localStorage.getItem('stackbit_vs') || '[]');
+            document.getElementById('solo-list').innerHTML = solo.length ? solo.map(s => `<div>${s.score} PTS</div>`).join('') : "NO DATA";
+            document.getElementById('vs-list').innerHTML = vs.length ? vs.map(s => `<div>${s.score} PTS</div>`).join('') : "NO DATA";
+            openModal('leaderboard-modal');
+        }
+
+        /** TETRIS ENGINE **/
+        const COLS = 10, ROWS = 20, BLOCK = 24;
+        const SHAPES = { I:[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], J:[[1,0,0],[1,1,1],[0,0,0]], L:[[0,0,1],[1,1,1],[0,0,0]], O:[[1,1],[1,1]], S:[[0,1,1],[1,1,0],[0,0,0]], T:[[0,1,0],[1,1,1],[0,0,0]], Z:[[1,1,0],[0,1,1],[0,0,0]] };
+        const SHADES_P1 = { I:'#ff2d95', J:'#e0247d', L:'#c21b6a', O:'#ff5cb3', S:'#ff0066', T:'#d41c8d', Z:'#a3004d' };
+        const SHADES_P2 = { I:'#00e5ff', J:'#00c2d9', L:'#00a3b8', O:'#5cf0ff', S:'#00ffff', T:'#1ca9d4', Z:'#007b8f' };
+
+        class Player {
+            constructor(id, canvasId, nextId, scoreId, shades) {
+                this.id = id; this.canvas = document.getElementById(canvasId); this.ctx = this.canvas.getContext('2d');
+                this.nextCanvas = document.getElementById(nextId); this.nctx = this.nextCanvas.getContext('2d');
+                this.scoreElem = document.getElementById(scoreId); this.shades = shades; this.reset();
+            }
+            reset() {
+                this.grid = Array.from({length: ROWS}, () => Array(COLS).fill(0));
+                this.score = 0; this.level = 1; this.gameOver = false;
+                this.dropCounter = 0; this.dropInterval = 1000; this.next = 'IJLOSTZ'[Math.random()*7|0];
+                this.spawn();
+            }
+            spawn() {
+                this.type = this.next; this.next = 'IJLOSTZ'[Math.random()*7|0];
+                this.matrix = SHAPES[this.type].map(r => [...r]); this.pos = { x: 3, y: 0 };
+                if (this.collide()) this.gameOver = true;
+                this.drawNext(); this.updateUI();
+            }
+            collide(m = this.matrix, p = this.pos) {
+                for (let y = 0; y < m.length; y++) for (let x = 0; x < m[y].length; x++) {
+                    if (m[y][x] !== 0) {
+                        let ny = y + p.y, nx = x + p.x;
+                        if (ny >= ROWS || nx < 0 || nx >= COLS || (ny >= 0 && this.grid[ny][nx])) return true;
+                    }
+                }
+                return false;
+            }
+            rotate() {
+                const prev = this.matrix; this.matrix = this.matrix[0].map((_, i) => this.matrix.map(row => row[i]).reverse());
+                if (this.collide()) this.matrix = prev; else playSfx(400, 'square', 0.05);
+            }
+            move(dir) { this.pos.x += dir; if (this.collide()) this.pos.x -= dir; else playSfx(300, 'sine', 0.02); }
+            drop() { this.pos.y++; if (this.collide()) { this.pos.y--; this.lock(); } this.dropCounter = 0; }
+            hardDrop() { while(!this.collide()){ this.pos.y++; } this.pos.y--; this.lock(); playSfx(150, 'square', 0.1); }
+            lock() {
+                this.matrix.forEach((row, y) => row.forEach((v, x) => { if (v !== 0 && this.pos.y + y >= 0) this.grid[this.pos.y+y][this.pos.x+x] = this.type; }));
+                this.sweep(); this.spawn();
+            }
+            sweep() {
+                let count = 0; outer: for(let y=ROWS-1; y>=0; y--){
+                    for(let x=0; x<COLS; x++) if(!this.grid[y][x]) continue outer;
+                    this.grid.splice(y, 1); this.grid.unshift(Array(COLS).fill(0)); count++; y++;
+                }
+                if(count > 0) { this.score += [0, 100, 300, 500, 800][count]; this.updateUI(); playSfx(600, 'sine', 0.2); }
+            }
+            updateUI() { this.scoreElem.innerText = this.score; }
+            draw() {
+                this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+                this.ctx.fillStyle = 'rgba(0,0,0,0.92)'; this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
+                this.drawMatrix(this.grid, {x:0, y:0}, this.ctx);
+                this.drawMatrix(this.matrix, this.pos, this.ctx, this.type);
+            }
+            drawMatrix(m, o, c, typeOverride) {
+                m.forEach((row, y) => row.forEach((v, x) => {
+                    if (v !== 0) {
+                        const px = (x+o.x)*BLOCK, py = (y+o.y)*BLOCK;
+                        c.fillStyle = this.shades[typeOverride || v];
+                        c.fillRect(px, py, BLOCK, BLOCK);
+                        c.strokeStyle = '#000'; c.lineWidth = 2; c.strokeRect(px, py, BLOCK, BLOCK);
+                    }
+                }));
+            }
+            drawNext() {
+                this.nctx.fillStyle = '#000'; this.nctx.fillRect(0,0,80,80);
+                const m = SHAPES[this.next];
+                m.forEach((row, y) => row.forEach((v, x) => { 
+                    if(v){ 
+                        this.nctx.fillStyle = this.shades[this.next]; 
+                        this.nctx.fillRect(x*12+24, y*12+24, 12, 12); 
+                        this.nctx.strokeStyle = '#000'; this.nctx.strokeRect(x*12+24, y*12+24, 12, 12);
+                    } 
+                }));
+            }
+        }
+
+        const P1 = new Player('p1', 'p1-board', 'p1-next', 'p1-score-val', SHADES_P1);
+        const P2 = new Player('p2', 'p2-board', 'p2-next', 'p2-score-val', SHADES_P2);
+        let gameMode = 'single', active = false, last = 0;
+
+        const keys = {}; const timers = {};
+        window.addEventListener('keydown', e => { keys[e.code] = true; });
+        window.addEventListener('keyup', e => { keys[e.code] = false; delete timers[e.code]; });
+
+        function handleInputs() {
+            if (!active) return;
+            const now = Date.now(), delay = 100; 
+            const process = (code, action) => { if (keys[code]) { if (!timers[code] || now - timers[code] > delay) { action(); timers[code] = now; } } };
+            process('ArrowLeft', () => P1.move(-1)); process('ArrowRight', () => P1.move(1));
+            process('ArrowDown', () => P1.drop()); process('ArrowUp', () => P1.rotate());
+            if (keys['Space']) { if(!timers['P1Hard']) { P1.hardDrop(); timers['P1Hard'] = now + 300; }}
+            if (!keys['Space']) delete timers['P1Hard'];
+            if (gameMode === 'vs') {
+                process('KeyA', () => P2.move(-1)); process('KeyD', () => P2.move(1));
+                process('KeyS', () => P2.drop()); process('KeyW', () => P2.rotate());
+                if (keys['KeyQ']) { if(!timers['P2Hard']) { P2.hardDrop(); timers['P2Hard'] = now + 300; }}
+                if (!keys['KeyQ']) delete timers['P2Hard'];
+            }
+        }
+
+        function initGame(m) {
+            gameMode = m; active = true;
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('p2-container').classList.toggle('hidden', gameMode==='single');
+            P1.reset(); P2.reset();
+            last = performance.now();
+            requestAnimationFrame(loop);
+        }
+
+        function saveScore(mode, score) {
+            const key = mode === 'vs' ? 'stackbit_vs' : 'stackbit_solo';
+            let scores = JSON.parse(localStorage.getItem(key) || '[]');
+            scores.push({score, date: new Date().toLocaleDateString()});
+            scores.sort((a, b) => b.score - a.score);
+            localStorage.setItem(key, JSON.stringify(scores.slice(0, 5)));
+        }
+
+        function loop(t) {
+            if(!active) return;
+            const dt = t - last; last = t;
+            handleInputs();
+            [P1, P2].forEach((p, i) => {
+                if(i === 1 && gameMode === 'single') return;
+                p.dropCounter += dt;
+                if(p.dropCounter > p.dropInterval) p.drop();
+                p.draw();
+                if(p.gameOver) {
+                    active = false;
+                    saveScore(gameMode, P1.score);
+                    document.getElementById('game-over-screen').classList.remove('hidden');
+                    document.getElementById('final-score').innerText = P1.score;
+                }
+            });
+            if(active) requestAnimationFrame(loop);
+        }
+
+        function toggleAudio() { audioEnabled = !audioEnabled; document.getElementById('audio-toggle').innerText = audioEnabled ? "ON" : "OFF"; }
+    </script>
+</body>
+</html>
