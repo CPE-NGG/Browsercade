@@ -56,18 +56,6 @@
             animation: float 3s ease-in-out infinite;
         }
 
-        /* --- KEYFRAMES --- */
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-
-        @keyframes smoothPopIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .reveal-effect { animation: smoothPopIn 0.8s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards; }
-
         /* --- SPLASH SCREEN --- */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -76,7 +64,17 @@
             transition: opacity 2.5s ease-in-out; cursor: pointer;
         }
         #splash-screen.fade-out { opacity: 0; pointer-events: none; } 
-        #splash-screen video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 1; }
+        
+        #splash-screen video { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            object-fit: cover; /* FIXED: Removes black edges */
+            opacity: 1; 
+        }
+
+        /* --- VIDEO EXCLUSIVITY --- */
+        .vid-landscape, .vid-portrait { display: none; }
+        @media (orientation: landscape) { .vid-landscape { display: block; } }
+        @media (orientation: portrait) { .vid-portrait { display: block; } }
         
         #start-prompt { 
             position: absolute; bottom: 20%; 
@@ -84,18 +82,10 @@
             font-size: 1rem; animation: blink 0.8s infinite; z-index: 10; 
             text-shadow: 4px 4px 0px #000;
         }
+
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
-        /* --- ANIMATION KEYFRAMES --- */
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-
-        @keyframes smoothPopIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        @keyframes smoothPopIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .reveal-effect { animation: smoothPopIn 0.8s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards; }
 
         /* --- SCREENS --- */
@@ -110,30 +100,27 @@
         }
         .screen.active { display: flex; opacity: 1; }
 
-        /* --- MODAL CONTAINER FIX --- */
-        #modal-container {
-            z-index: 2000; /* Forces modals to the very front */
-            background: rgba(0, 0, 0, 0.85);
-        }
+        #modal-container { z-index: 2000; background: rgba(0, 0, 0, 0.85); }
 
         .lobby-header-controls {
             position: absolute; top: 20px; right: 20px;
             display: none; gap: 10px; z-index: 1000;
             opacity: 0;
         }
+
         .icon-btn-small {
             background: #000; border: 2px solid var(--neon-yellow); color: var(--neon-yellow);
             width: 40px; height: 40px; font-size: 18px; border-radius: 4px; 
             cursor: pointer; display: flex; align-items: center; justify-content: center;
             box-shadow: 4px 4px 0 var(--jungle-green); transition: 0.1s;
         }
+
         .icon-btn-small:hover {
             background: var(--neon-yellow); color: #000;
             transform: translate(-2px, -2px);
             box-shadow: 6px 6px 0 var(--jungle-green);
         }
 
-        /* BUTTONS */
         .diff-btn { 
             width: 260px; padding: 16px 20px; margin: 10px 0;
             background: #000; border: 3px solid var(--neon-yellow); 
@@ -144,72 +131,32 @@
         .diff-btn:hover { background: var(--neon-yellow); color: #000; transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--jungle-green); }
         .diff-btn.selected { background: var(--jungle-green); color: #fff; transform: translate(2px, 2px); box-shadow: 2px 2px 0 #000; }
 
-        /* --- MODAL STYLES --- */
         .modal {
-            background: rgba(0, 15, 0, 0.98);
-            border: 4px solid var(--neon-yellow);
-            padding: 20px; /* Reduced from 40px to give content more room */
-            position: relative;
-            width: 90%;
-            max-width: 500px;
-            /* Removed padding: 40px; text-align: center; as it interferes with new layout */
-            box-shadow: 15px 15px 0 var(--jungle-green);
-            
-            /* New: Added flex for layout centering */
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background: rgba(0, 15, 0, 0.98); border: 4px solid var(--neon-yellow);
+            padding: 20px; position: relative; width: 90%; max-width: 500px;
+            box-shadow: 15px 15px 0 var(--jungle-green); display: flex;
+            justify-content: center; align-items: center;
         }
 
         #modal-inner {
-            width: 100%;
-            text-align: center;
-            /* Standardized vertical spacing for all children (titles, text, buttons) */
-            display: flex;
-            flex-direction: column;
-            gap: 20px; /* This defines the space between *all* elements inside the modal */
-            align-items: center;
-        }
-
-        #modal-inner h2 {
-            margin: 0;
-            padding: 0;
-        }
-
-        #modal-inner p {
-            margin: 0;
-            padding: 0;
+            width: 100%; text-align: center; display: flex;
+            flex-direction: column; gap: 20px; align-items: center;
         }
 
         .close-btn { 
-            position: absolute; 
-            top: 5px; 
-            right: 5px; 
-            background: var(--danger-red); 
-            color: #fff; 
-            border: 3px solid #000; 
-            width: 35px; 
-            height: 35px; 
-            cursor: pointer;
-            font-family: 'Press Start 2P'; 
-            font-size: 12px;
-            box-shadow: 4px 4px 0 #000; 
-            z-index: 10;
-        }
-
-        #modal-inner button.diff-btn {
-            width: 100%; 
-            max-width: 260px; 
+            position: absolute; top: 5px; right: 5px; 
+            background: var(--danger-red); color: #fff; 
+            border: 3px solid #000; width: 35px; height: 35px; 
+            cursor: pointer; font-family: 'Press Start 2P'; font-size: 12px;
+            box-shadow: 4px 4px 0 #000; z-index: 10;
         }
         
-        /* --- GAME ENGINE UI --- */
         #game-canvas { 
             background: rgba(0, 0, 0, 0.9); border: 4px solid var(--neon-yellow); 
             box-shadow: 0 0 50px var(--neon-glow); max-width: 95vw; max-height: 50vh; 
         }
         .score-display { font-size: 1.2rem; margin-bottom: 15px; text-shadow: 2px 2px 0 #000; }
 
-        /* --- MOBILE CONTROLLER --- */
         #mobile-controls { display: none; width: 100%; margin-top: 20px; }
         .d-pad { display: grid; grid-template-columns: repeat(3, 65px); grid-template-rows: repeat(2, 65px); gap: 12px; justify-content: center; }
         .d-btn { 
@@ -226,8 +173,6 @@
         }
 
         @media (orientation: portrait) {
-            .vid-landscape { display: none; }
-            .vid-portrait { display: block; }
             .brand-text { font-size: 1.5rem; letter-spacing: 2px; }
             .brand-header { top: 10%; }
         }
@@ -259,7 +204,6 @@
     <canvas id="bg-canvas"></canvas>
     <div class="scanlines"></div>
 
-    <!-- MAIN SCREENS -->
     <section id="screen-lobby" class="screen">
         <h1 style="font-size: 2.5rem; margin-top: 60px; text-shadow: 4px 4px 0 #000;">SNAKEBYTE</h1>
         <div style="display: flex; flex-direction: column; align-items: center; margin-top: 20px;">
@@ -284,7 +228,6 @@
         <button class="diff-btn" style="margin-top: 20px; font-size: 0.6rem; width: 220px;" onclick="location.reload()">ABORT MISSION</button>
     </section>
 
-    <!-- MODAL OVERLAY (High Z-Index) -->
     <section id="modal-container" class="screen">
         <div id="modal-content" class="modal">
             <button class="close-btn" onclick="closeModal()">X</button>
@@ -293,7 +236,6 @@
     </section>
 
     <script>
-        /* --- BACKGROUND --- */
         const bg = document.getElementById('bg-canvas');
         const bgCtx = bg.getContext('2d');
         let leaves = [], vines = [], terrainOffset = 0;
@@ -333,7 +275,6 @@
         }
         drawBG();
 
-        /* --- AUDIO --- */
         const audio = {
             ctx: null, bgmG: null, sfxG: null, musicInt: null, beat: 0,
             init() {
@@ -366,7 +307,6 @@
             }
         };
 
-        /* --- GAME ENGINE --- */
         const canvas = document.getElementById('game-canvas');
         const gCtx = canvas.getContext('2d');
         let snake, food, dir, nextDir, score, loop, difficulty = 'easy', obstacles = [];
@@ -402,19 +342,14 @@
         function startGame() {
             const m = { easy:20, medium:25, hard:30 }[difficulty];
             const speed = { easy:130, medium:105, hard:80 }[difficulty];
-            
-            // Hide the brand header immediately on start
             document.getElementById('brand-header').style.display = 'none';
-            
             showScreen('game');
             canvas.width = canvas.height = Math.min(window.innerWidth * 0.85, 500);
             snake = [{x:2, y:2}, {x:1, y:2}]; dir = nextDir = 'RIGHT'; score = 0; obstacles = [];
-            
             if(difficulty === 'medium') {
                 const mid = Math.floor(m/2);
                 for(let i=0; i<m; i++) if(Math.abs(i-mid)>4) obstacles.push({x:mid, y:i}, {x:i, y:mid});
             } else if(difficulty === 'hard') obstacles = generateHardMap(m);
-            
             spawnFood(m);
             if(loop) clearInterval(loop);
             loop = setInterval(() => step(m), speed);
@@ -428,13 +363,9 @@
         function step(grid) {
             dir = nextDir; const head = {...snake[0]};
             if(dir === 'UP') head.y--; if(dir === 'DOWN') head.y++; if(dir === 'LEFT') head.x--; if(dir === 'RIGHT') head.x++;
-            
             if(head.x < 0 || head.x >= grid || head.y < 0 || head.y >= grid || 
                snake.some(s => s.x === head.x && s.y === head.y) || 
-               obstacles.some(o => o.x === head.x && o.y === head.y)) {
-                return endGame();
-            }
-
+               obstacles.some(o => o.x === head.x && o.y === head.y)) return endGame();
             snake.unshift(head);
             if(head.x === food.x && head.y === food.y) { 
                 score+=5; document.getElementById('score-val').innerText = score; 
@@ -460,57 +391,29 @@
         }
 
         function resetToLobby() {
-            // 1. Stop the game loop if it's running
             if(loop) clearInterval(loop);
-            
-            // 2. Reset the UI score
-            score = 0;
-            document.getElementById('score-val').innerText = score;
-            
-            // 3. Hide the modal and the game screen
+            score = 0; document.getElementById('score-val').innerText = score;
             closeModal();
-
-            // Show the brand header again when returning to lobby
             document.getElementById('brand-header').style.display = 'block';
-            
-            // 4. Return to lobby
             showScreen('lobby');
-            
-            // 5. Play a reset sound
             audio.playSFX(400, 'square', 0.2);
         }
 
-        /* --- MODALS --- */
         function showModal(type) {
             const inner = document.getElementById('modal-inner');
             const container = document.getElementById('modal-container');
             const closeBtn = document.querySelector('.close-btn');
-            
             container.classList.add('active');
             closeBtn.style.display = 'block';
 
-            if(type === 'rules') {
-                inner.innerHTML = `<h2>MANUAL</h2><p style="font-size:10px; line-height:2.2;">Use Arrows or D-Pad.<br>Eat Nodes to Sync.<br>Avoid Barriers & Self.</p>`;
-            }
-            if(type === 'settings') {
-                inner.innerHTML = `<h2>AUDIO</h2><div style="text-align:left"><p>BGM: <input type="range" id="bgm-vol" min="0" max="1" step="0.1" value="0.5" oninput="audio.updateVol()"></p><p>SFX: <input type="range" id="sfx-vol" min="0" max="1" step="0.1" value="0.7" oninput="audio.updateVol()"></p></div>`;
-            }
+            if(type === 'rules') inner.innerHTML = `<h2>MANUAL</h2><p style="font-size:10px; line-height:2.2;">Use Arrows or D-Pad.<br>Eat Nodes to Sync.<br>Avoid Barriers & Self.</p>`;
+            if(type === 'settings') inner.innerHTML = `<h2>AUDIO</h2><div style="text-align:left"><p>BGM: <input type="range" id="bgm-vol" min="0" max="1" step="0.1" value="0.5" oninput="audio.updateVol()"></p><p>SFX: <input type="range" id="sfx-vol" min="0" max="1" step="0.1" value="0.7" oninput="audio.updateVol()"></p></div>`;
             if(type === 'scores') { 
-                // Added margin-bottom to h2 for spacing and a div for the wipe button
-                inner.innerHTML = `
-                    <h2 style="margin-bottom: 30px;">RANK</h2>
-                    <div id="score-list" style="margin-bottom: 20px;"></div>
-                    <div id="wipe-container">
-                        <button class="diff-btn" style="width:100%;font-size:10px" onclick="clearScores()">WIPE</button>
-                    </div>`; 
+                inner.innerHTML = `<h2 style="margin-bottom: 30px;">RANK</h2><div id="score-list" style="margin-bottom: 20px;"></div><div id="wipe-container"><button class="diff-btn" style="width:100%;font-size:10px" onclick="clearScores()">WIPE</button></div>`; 
                 loadScores(); 
             }
             if(type === 'over') {
-                inner.innerHTML = `
-                    <h2 style="margin-bottom: 20px;">CRASHED</h2>
-                    <p style="margin-bottom: 30px;">SYNC: ${score}</p>
-                    <button class="diff-btn" onclick="resetToLobby()" style="background:var(--danger-red);color:white;width:100%; border-color: white;">REBOOT</button>
-                `;
+                inner.innerHTML = `<h2 style="margin-bottom: 20px;">CRASHED</h2><p style="margin-bottom: 30px;">SYNC: ${score}</p><button class="diff-btn" onclick="resetToLobby()" style="background:var(--danger-red);color:white;width:100%; border-color: white;">REBOOT</button>`;
                 closeBtn.style.display = 'none';
             }
         }
@@ -519,28 +422,17 @@
         function loadScores() {
             const list = JSON.parse(localStorage.getItem('sb_final_scores') || '[]');
             const listContainer = document.getElementById('score-list');
-            const wipeContainer = document.getElementById('wipe-container');
-            
             if(!listContainer) return;
-
             if (list.length > 0) {
-                listContainer.innerHTML = list.map(x => `
-                    <div style="display:flex;justify-content:space-between;font-size:10px;margin:10px 0">
-                        <span>${x.s} PTS</span><span>${x.d}</span>
-                    </div>`).join('');
-                if(wipeContainer) wipeContainer.style.display = 'block';
+                listContainer.innerHTML = list.map(x => `<div style="display:flex;justify-content:space-between;font-size:10px;margin:10px 0"><span>${x.s} PTS</span><span>${x.d}</span></div>`).join('');
+                document.getElementById('wipe-container').style.display = 'block';
             } else {
-                // Increased margin-top here to separate "NO DATA" from "RANK"
                 listContainer.innerHTML = `<div style="font-size:10px; margin-top: 10px; color: rgba(204,255,0,0.5);">NO DATA</div>`;
-                if(wipeContainer) wipeContainer.style.display = 'none';
+                document.getElementById('wipe-container').style.display = 'none';
             }
         }
 
-        function clearScores() {
-            localStorage.removeItem('sb_final_scores');
-            audio.playSFX(200, 'sawtooth', 0.2); // Added feedback for wiping
-            loadScores(); 
-        }
+        function clearScores() { localStorage.removeItem('sb_final_scores'); audio.playSFX(200, 'sawtooth', 0.2); loadScores(); }
 
         function handleDPad(newDir) {
             if (newDir === 'UP' && dir !== 'DOWN') nextDir = 'UP';
@@ -550,31 +442,31 @@
             audio.playSFX(800, 'sine', 0.05);
         }
 
-        /* --- INITIALIZATION --- */
         window.onload = function() {
             const splash = document.getElementById('splash-screen');
+            const vids = splash.querySelectorAll('video');
             const lobby = document.getElementById('screen-lobby');
             const brand = document.getElementById('brand-header');
             const nav = document.getElementById('sys-nav');
             setDiff('easy');
 
-            splash.addEventListener('click', () => {
-                audio.init(); // Initialize context
-                audio.playSFX(1200, 'triangle', 0.5);
+            vids.forEach(v => {
+                if (window.getComputedStyle(v).display !== 'none') v.play().catch(() => {});
+                else v.pause();
+            });
 
+            splash.addEventListener('click', () => {
+                audio.init();
+                audio.playSFX(1200, 'triangle', 0.5);
                 splash.classList.add('fade-out');
-                
                 setTimeout(() => {
                     splash.style.display = 'none';
-                    brand.style.display = 'block'; // Triggers the float animation
+                    brand.style.display = 'block';
                     nav.style.display = 'flex';
                     lobby.classList.add('active');
-                    
-                    // Staggered reveals
                     brand.classList.add('reveal-effect');
                     nav.classList.add('reveal-effect');
                     lobby.classList.add('reveal-effect');
-                    
                     audio.startMusic();
                 }, 2500); 
             });
