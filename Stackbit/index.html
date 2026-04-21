@@ -77,17 +77,13 @@
         .vid-landscape { display: block; }
         .vid-portrait { display: none; }
 
-        @media (orientation: portrait) {
-            .vid-landscape { display: none; }
-            .vid-portrait { display: block; }
-        }
-
         #start-prompt {
             position: absolute; bottom: 20%; left: 50%;
             transform: translateX(-50%); font-family: var(--pixel-font);
             color: var(--neon-green); font-size: 1rem;
             animation: blink 0.8s infinite; text-transform: uppercase;
             text-shadow: 2px 2px 0px #000; pointer-events: none; z-index: 10;
+            white-space: nowrap; /* Prevents text wrap like Sokopix */
         }
 
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
@@ -140,8 +136,15 @@
         h1 { font-size: 2.2rem; margin: 0 0 10px 0; color: var(--neon-blue); text-shadow: 4px 4px 0px var(--neon-pink); }
         h2 { font-size: 1.2rem; margin-bottom: 20px; color: var(--neon-blue); }
 
+        .mode-container {
+            display: flex; 
+            gap: 20px; 
+            margin-top: 20px;
+            justify-content: center;
+        }
+
         .mode-btn {
-            flex: 1; height: 60px; background: transparent;
+            flex: 1; max-width: 200px; height: 60px; background: transparent;
             border: 4px solid var(--neon-pink); color: var(--neon-pink);
             font-family: var(--pixel-font); font-size: 0.7rem; cursor: pointer;
             transition: 0.1s; box-shadow: 6px 6px 0px rgba(0,0,0,0.5);
@@ -182,10 +185,22 @@
         }
         .ctrl-btn:active { background: var(--neon-blue); color: black; }
 
+        /* --- MOBILE RESPONSIVE TWEAKS --- */
         @media (max-width: 768px) {
+            .brand-text { font-size: 1.4rem; letter-spacing: 2px; }
+            .brand-header { top: 12%; }
+            #start-prompt { font-size: 0.7rem; bottom: 25%; }
+            
+            .modal { padding: 25px 15px; }
+            h1 { font-size: 1.5rem; }
+            
+            /* Remove Dual Mode on Mobile */
+            .vs-alt { display: none !important; }
+            .mode-btn { max-width: 100%; }
+
             #game-view { flex-direction: column; scale: 0.85; margin-top: -100px; }
             #mobile-ctrls { display: grid; }
-            h1 { font-size: 1.5rem; }
+            #lobby-nav { top: 10px; right: 10px; scale: 0.8; }
         }
 
         /* --- LEADERBOARD SPECIFIC STYLES --- */
@@ -249,8 +264,8 @@
     <div id="start-screen" class="screen">
         <div class="modal">
             <h1>STACKBIT</h1>
-            <p style="letter-spacing: 4px; color: var(--neon-pink); font-size: 0.6rem; margin-bottom: 20px;">MIDNIGHT VS EDITION</p>
-            <div style="display: flex; gap: 20px; margin-top: 20px;">
+            <p style="letter-spacing: 4px; color: var(--neon-pink); font-size: 0.6rem; margin-bottom: 20px;">MIDNIGHT EDITION</p>
+            <div class="mode-container">
                 <button class="mode-btn" onclick="initGame('single')">SOLO RUN</button>
                 <button class="mode-btn vs-alt" onclick="initGame('vs')">DUAL MODE</button>
             </div>
@@ -265,12 +280,12 @@
                     <div class="board-title">SOLO TOP 5</div>
                     <div id="solo-list">-- EMPTY --</div>
                 </div>
-                <div class="board-list">
+                <div class="board-list vs-alt">
                     <div class="board-title">VS TOP 5</div>
                     <div id="vs-list">-- EMPTY --</div>
                 </div>
             </div>
-            <button class="mode-btn" style="width:100%; margin-top:20px" onclick="closeModals()">EXIT</button>
+            <button class="mode-btn" style="width:100%; margin-top:20px; max-width: none;" onclick="closeModals()">EXIT</button>
         </div>
     </div>
 
@@ -278,10 +293,10 @@
         <div class="modal">
             <h2>LINK START</h2>
             <div style="display: flex; flex-direction: column; gap: 15px; text-align: left; font-size: 0.6rem;">
-                <div><span style="color:var(--neon-blue)">P2 (LEFT):</span> WASD | Q (DROP)</div>
+                <div class="vs-alt"><span style="color:var(--neon-blue)">P2 (LEFT):</span> WASD | Q (DROP)</div>
                 <div><span style="color:var(--neon-pink)">P1 (RIGHT):</span> ARROWS | SPACE (DROP)</div>
             </div>
-            <button class="mode-btn" style="width:100%; margin-top:20px" onclick="closeModals()">OK</button>
+            <button class="mode-btn" style="width:100%; margin-top:20px; max-width: none;" onclick="closeModals()">OK</button>
         </div>
     </div>
 
@@ -292,7 +307,7 @@
                 <p style="font-size: 0.7rem;">MUSIC: <button class="nav-btn" id="bgm-toggle" onclick="toggleBGM()" style="width:80px; display:inline-flex; height: 35px; font-size: 0.6rem; margin-left:10px;">ON</button></p>
                 <p style="font-size: 0.7rem;">SFX: <button class="nav-btn" id="sfx-toggle" onclick="toggleSFX()" style="width:80px; display:inline-flex; height: 35px; font-size: 0.6rem; margin-left:10px;">ON</button></p>
             </div>
-            <button class="mode-btn" style="width:100%; margin-top:20px" onclick="closeModals()">BACK</button>
+            <button class="mode-btn" style="width:100%; margin-top:20px; max-width: none;" onclick="closeModals()">BACK</button>
         </div>
     </div>
 
@@ -302,7 +317,7 @@
             <div class="stat-box" style="margin: 20px auto; width: 200px;">
                 <div id="final-score" style="font-size: 1.2rem;">0</div>
             </div>
-            <button class="mode-btn" style="width:100%" onclick="window.location.reload()">RETRY</button>
+            <button class="mode-btn" style="width:100%; max-width: none;" onclick="window.location.reload()">RETRY</button>
         </div>
     </div>
 
