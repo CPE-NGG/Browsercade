@@ -372,24 +372,49 @@
 
         /* --- 11. RESPONSIVE QUERIES --- */
         @media (max-width: 768px) {
-            h1 { font-size: 2rem; }
-            .logo-box { margin-top: 20px; margin-bottom: 40px; }
+            h1 { font-size: 2.2rem; } /* Slightly smaller for mobile */
+            .logo-box { margin-top: 30px; margin-bottom: 40px; }
             
+            /* Move Badges to Bottom Corners for better Ergonomics */
+            .settings-badge, .about-badge {
+                top: auto;        /* Clear the top position */
+                bottom: 20px;     /* Stick to bottom */
+                z-index: 1000;    /* Ensure they stay above the grid */
+            }
+
+            .settings-badge { left: 15px; }
+            .about-badge { right: 15px; }
+
+            /* Shrink the buttons slightly for smaller screens */
+            .settings-icon, .about-icon {
+                font-size: 0.65rem;
+                padding: 8px 12px;
+                box-shadow: 3px 3px 0 #000;
+            }
+
+            /* Flip the About content to open UPWARDS */
+            .about-content {
+                top: auto;
+                bottom: 120%; /* Opens above the button */
+                width: 80vw;  /* Wider for mobile readability */
+                max-width: 280px;
+            }
+
             .game-grid {
                 flex-direction: column;
                 align-items: center;
+                padding-bottom: 80px; /* Extra space so cards don't hide under bottom buttons */
             }
 
             .game-card {
-                width: 100%;
+                width: 90%;
                 max-width: 340px;
-                height: 300px;
+                height: auto; /* Let it grow with content */
+                min-height: 280px;
             }
 
             .game-icon { font-size: 3rem; margin-top: 10px; }
-            .play-btn { width: 100%; padding: 20px; } /* Large touch target */
-            
-            .about-content { width: 200px; }
+            .play-btn { width: 100%; padding: 15px; }
         }
 
         /* --- 12. SETTINGS & MODAL --- */
@@ -507,7 +532,7 @@
             <div class="about-title">SYSTEM CREDITS</div>
             <div class="about-text">
                 > DEVELOPER: <span style="color:var(--accent-primary)">NICOLE GURRO / CPE-NGG</span><br>
-                > VERSION: 1.6.2<br>
+                > VERSION: 1.6.3<br>
                 > ENGINE: HTML5<br>
                 <br>
                 "A Collection of Classic Games"
