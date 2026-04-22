@@ -11,6 +11,7 @@
             --magma-dark: #1a0505;
             --magma-mid: #450a0a;
             --lava-bright: #f97316;
+            --start-prompt-color: #00f2ff;
         }
 
         html, body {
@@ -84,7 +85,7 @@
 
         #start-prompt {
             position: absolute; bottom: 20%; font-family: 'Press Start 2P', cursive;
-            color: #facc15; 
+            color: var(--start-prompt-color); 
             font-size: 1rem; animation: blink 0.8s infinite;
             text-transform: uppercase; text-shadow: 2px 2px 0px #000; pointer-events: none;
             z-index: 10; 

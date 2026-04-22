@@ -17,9 +17,10 @@
         :root {
             --bg-dark: #1a0b2e;
             --bg-light: #2d1b4e;
-            --neon-green: #00ff9d;
             --neon-purple: #b900ff;
             --neon-gold: #ffd700;
+            --neon-green: #00FF85;
+            --start-prompt-color: #00f2ff;
             --glass-bg: rgba(45, 27, 78, 0.95);
             --border-color: #ffffff;
             --text-color: #ffffff;
@@ -129,7 +130,7 @@
 
         #start-prompt {
             position: absolute; bottom: 20%; font-family: 'Press Start 2P', cursive;
-            color: var(--neon-green); font-size: 1rem; animation: blink 0.8s infinite;
+            color: var(--start-prompt-color); font-size: 1rem; animation: blink 0.8s infinite;
             text-transform: uppercase; text-shadow: 2px 2px 0px #000; pointer-events: none;
             z-index: 10; 
         }
